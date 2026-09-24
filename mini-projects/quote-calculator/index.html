@@ -9,6 +9,72 @@
 </head>
 <body>
 
+    <div class = "quote-calculator">
+        <h1>Quote Calculator</h1>
+        <div class = "services">
+            <h2>Services</h2>
+
+            <label>
+                <input type = 'radio' name = 'service' value = '50'>
+                Interior Detail - $50
+            </label>
+
+            <label>
+                <input type = 'radio' name = 'service' value = '50'>
+                Exterior Detail - $50
+            </label>
+
+            <label>
+                <input type = 'radio' name = 'service' value = '90'>
+                Full Detail - $90
+            </label>
+        </div>
+
+        <div class = 'add-ons'>
+            <h2>Add-Ons</h2>
+
+            <label>
+                <input type = 'checkbox' name = 'add-on' value = '60'>
+                Seat Extraction - $60
+            </label>
+
+            <label>
+                <input type = 'checkbox' name = 'add-on' value = '80'>
+                Headlight Restoration - $80
+            </label>
+
+            <label>
+                <input type = 'checkbox' name = 'add-on' value = '40'>
+                Spray Sealant - $40
+            </label>
+
+            <label>
+                <input type = 'checkbox' name = 'add-on' value = '30'>
+                Pet Hair Removal - $30
+            </label>
+
+            <label>
+                <input type = 'checkbox' name = 'add-on' value = '25'>
+                Leather Conditioner - $25
+            </label>
+        </div>
+
+        <div class = 'dirtiness'>
+            <h2>Dirtiness Level</h2>
+
+            <label>
+                <2 Months Since Last Detail
+                <input type = 'range' name = 'dirtiness' min = '1' max = '1000'>
+                >1 Year Since Last Detail
+            </label>
+        </div>
+
+        <div class = 'price'>
+            <h3>Total Quote</h3>
+            <p id="quote"> $0.00</p>
+        </div>
+    </div>
+
     <script src="script.js"></script>
 </body>
 </html>
