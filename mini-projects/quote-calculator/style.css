@@ -19,11 +19,11 @@ body {
     color: #333;
 }
 
-.services, .add-ons, .dirtiness {
+.service, .add-ons, .dirtiness {
     margin-bottom: 30px;
 }
 
-.services label, .add-ons label {
+.service label, .add-ons label {
     display: block;
     margin-bottom: 10px;
     font-size: 16px;
