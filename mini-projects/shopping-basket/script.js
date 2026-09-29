@@ -31,44 +31,59 @@ function addItem(name, price, quantity) {
 };
 
 function removeItem(name) {
-    let found = false
-    shopping_basket.forEach(function(item, index) {
-        if (item.name === name) {
-            shopping_basket.splice(index, 1);
-            found = true
-        } 
-
-    });
-    if (found === false) {
+    const index = shopping_basket.findIndex(function (basketItem) {
+        return basketItem.name === name
+    })
+    if (index === -1) {
         console.log(`Item "${name}" not found in the shopping basket.`);
-    };
-};
+    } else {
+        shopping_basket.splice(index, 1);
+    }
+}
 
 function showBasket() {
-    let count = 0;
-    let totalPrice = 0;
     console.log("Shopping Basket Contents:");
     shopping_basket.forEach(function(item) {
         console.log(`- ${item.name} x${item.quantity}, $${(item.quantity * item.price).toFixed(2)}`);
-        count += item.quantity
-        totalPrice += item.quantity * item.price
     });
-    console.log(`Total items: ${count}`);
+
+    const totalCount = shopping_basket.reduce(function (total, product) {
+        return total + product.quantity
+    }, 0);
+
+    const totalPrice = shopping_basket.reduce(function(total, product) {
+        return total + product.price * product.quantity;
+    }, 0);
+
+
+    console.log(`Total items: ${totalCount}`);
     console.log(`Total price: $${totalPrice.toFixed(2)}`);
 }
 
-function updateQuantity(name, newQuantity) {
-    let found = false
-    shopping_basket.forEach(function(item) {
-        if (item.name === name) {
-            item.quantity = newQuantity
-            found = true
-        } 
+// function updateQuantity(name, newQuantity) {
+//     let found = false
+//     shopping_basket.forEach(function(item) {
+//         if (item.name === name) {
+//             item.quantity = newQuantity
+//             found = true
+//         } 
 
-    });
-    if (found === false) {
+//     });
+//     if (found === false) {
+//         console.log(`Item "${name}" not found in the shopping basket.`);
+//     };
+// }
+
+function updateQuantity(name, newQuantity) {
+    const item = shopping_basket.find(function (item) {
+        return item.name === name
+    })
+
+    if (item) {
+        item.quantity = newQuantity
+    } else {
         console.log(`Item "${name}" not found in the shopping basket.`);
-    };
+    }
 }
 
 showBasket()
@@ -79,8 +94,12 @@ showBasket()
 
 removeItem("Eggs");
 
+removeItem("Coconut");
+
 showBasket()
 
 updateQuantity("Milk", 2)
+
+updateQuantity("Coconut", 2)
 
 showBasket()
