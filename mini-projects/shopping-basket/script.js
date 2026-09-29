@@ -28,7 +28,7 @@ function addItem(name, price, quantity) {
         price: price,
         quantity: quantity
     })
-};
+}
 
 function removeItem(name) {
     const index = shopping_basket.findIndex(function (basketItem) {
@@ -59,20 +59,6 @@ function showBasket() {
     console.log(`Total items: ${totalCount}`);
     console.log(`Total price: $${totalPrice.toFixed(2)}`);
 }
-
-// function updateQuantity(name, newQuantity) {
-//     let found = false
-//     shopping_basket.forEach(function(item) {
-//         if (item.name === name) {
-//             item.quantity = newQuantity
-//             found = true
-//         } 
-
-//     });
-//     if (found === false) {
-//         console.log(`Item "${name}" not found in the shopping basket.`);
-//     };
-// }
 
 function updateQuantity(name, newQuantity) {
     const item = shopping_basket.find(function (item) {
