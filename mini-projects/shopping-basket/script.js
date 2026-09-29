@@ -1,4 +1,4 @@
-const shopping_basket = 
+const shoppingBasket = 
     [
         {
             name: "Chicken",
@@ -22,36 +22,89 @@ const shopping_basket =
         }
     ];
 
+const input = document.getElementById("input")
+const addItemButton = document.getElementById("addItem")
+const list = document.getElementById("list")
+
+function renderList() {
+    list.innerHTML = "";
+    shoppingBasket.forEach(function(item) {
+        const newItem = document.createElement("li");
+
+        const name = document.createElement("span");
+        name.textContent = item.name;
+
+        const decrease = document.createElement("button");
+        decrease.textContent = `-`;
+
+        decrease.addEventListener("click", function() {
+            item.quantity--;
+
+            if (item.quantity <= 0) {
+                removeItem(item.name)
+            }
+
+            renderList()
+        })
+
+        const quantity = document.createElement("span");
+        quantity.textContent = `× ${item.quantity}`;
+
+        const increase = document.createElement("button");
+        increase.textContent = `+`;
+
+        increase.addEventListener("click", function() {
+            item.quantity++;
+            renderList()
+        })
+
+        const price = document.createElement("span");
+        price.textContent = `$${item.price}`;
+
+        const remove = document.createElement("button");
+        remove.textContent = "Remove";
+
+        remove.addEventListener("click", function() {
+            removeItem(item.name)
+            renderList()
+        });
+
+        newItem.append(name, decrease, quantity, increase, price, remove);
+        list.append(newItem);
+    });
+}
+
 function addItem(name, price, quantity) {
-    shopping_basket.push({
+    shoppingBasket.push({
         name: name,
         price: price,
         quantity: quantity
     })
 }
 
+
 function removeItem(name) {
-    const index = shopping_basket.findIndex(function (basketItem) {
+    const index = shoppingBasket.findIndex(function (basketItem) {
         return basketItem.name === name
     })
     if (index === -1) {
         console.log(`Item "${name}" not found in the shopping basket.`);
     } else {
-        shopping_basket.splice(index, 1);
+        shoppingBasket.splice(index, 1);
     }
 }
 
 function showBasket() {
     console.log("Shopping Basket Contents:");
-    shopping_basket.forEach(function(item) {
+    shoppingBasket.forEach(function(item) {
         console.log(`- ${item.name} x${item.quantity}, $${(item.quantity * item.price).toFixed(2)}`);
     });
 
-    const totalCount = shopping_basket.reduce(function (total, product) {
+    const totalCount = shoppingBasket.reduce(function (total, product) {
         return total + product.quantity
     }, 0);
 
-    const totalPrice = shopping_basket.reduce(function(total, product) {
+    const totalPrice = shoppingBasket.reduce(function(total, product) {
         return total + product.price * product.quantity;
     }, 0);
 
@@ -61,7 +114,7 @@ function showBasket() {
 }
 
 function updateQuantity(name, newQuantity) {
-    const item = shopping_basket.find(function (item) {
+    const item = shoppingBasket.find(function (item) {
         return item.name === name
     })
 
@@ -72,20 +125,22 @@ function updateQuantity(name, newQuantity) {
     }
 }
 
-showBasket()
+renderList()
 
-addItem("Banana", 1.50, 1);
+// showBasket()
 
-showBasket()
+// addItem("Banana", 1.50, 1);
 
-removeItem("Eggs");
+// showBasket()
 
-removeItem("Coconut");
+// removeItem("Eggs");
 
-showBasket()
+// removeItem("Coconut");
 
-updateQuantity("Milk", 2)
+// showBasket()
 
-updateQuantity("Coconut", 2)
+// updateQuantity("Milk", 2)
 
-showBasket()
+// updateQuantity("Coconut", 2)
+
+// showBasket()
