@@ -22,9 +22,12 @@ const shoppingBasket =
         }
     ];
 
-const input = document.getElementById("input")
+const nameInput = document.getElementById("name")
+const price = document.getElementById("price")
 const addItemButton = document.getElementById("addItem")
 const list = document.getElementById("list")
+const totalItems = document.getElementById("totalItems")
+const totalPriceElement = document.getElementById("totalPrice")
 
 function renderList() {
     list.innerHTML = "";
@@ -41,11 +44,11 @@ function renderList() {
             item.quantity--;
 
             if (item.quantity <= 0) {
-                removeItem(item.name)
+                removeItem(item.name);
             }
 
-            renderList()
-        })
+            renderList();
+        });
 
         const quantity = document.createElement("span");
         quantity.textContent = `× ${item.quantity}`;
@@ -55,32 +58,55 @@ function renderList() {
 
         increase.addEventListener("click", function() {
             item.quantity++;
-            renderList()
-        })
+            renderList();
+        });
 
         const price = document.createElement("span");
-        price.textContent = `$${item.price}`;
+        price.textContent = `$${(item.price * item.quantity).toFixed(2)}`;
 
         const remove = document.createElement("button");
         remove.textContent = "Remove";
 
         remove.addEventListener("click", function() {
-            removeItem(item.name)
-            renderList()
+            removeItem(item.name);
+            renderList();
         });
 
         newItem.append(name, decrease, quantity, increase, price, remove);
         list.append(newItem);
+
     });
-}
+
+    const totalCount = shoppingBasket.reduce(function (total, item) {
+        return total + item.quantity
+    }, 0);
+
+    totalItems.textContent = `Total Items: ${totalCount}`
+
+    const totalPrice = shoppingBasket.reduce(function (total, item) {
+        return total + item.quantity * item.price
+    }, 0);
+
+    totalPriceElement.textContent = `Total Price: $${totalPrice.toFixed(2)}`
+};
+
+addItemButton.addEventListener("click", function() {
+    addItem(nameInput.value, Number(price.value), 1)
+
+    nameInput.value = "";
+    price.value = "";
+
+    renderList();
+});
+
 
 function addItem(name, price, quantity) {
     shoppingBasket.push({
         name: name,
         price: price,
         quantity: quantity
-    })
-}
+    });
+};
 
 
 function removeItem(name) {
@@ -92,55 +118,6 @@ function removeItem(name) {
     } else {
         shoppingBasket.splice(index, 1);
     }
-}
+};
 
-function showBasket() {
-    console.log("Shopping Basket Contents:");
-    shoppingBasket.forEach(function(item) {
-        console.log(`- ${item.name} x${item.quantity}, $${(item.quantity * item.price).toFixed(2)}`);
-    });
-
-    const totalCount = shoppingBasket.reduce(function (total, product) {
-        return total + product.quantity
-    }, 0);
-
-    const totalPrice = shoppingBasket.reduce(function(total, product) {
-        return total + product.price * product.quantity;
-    }, 0);
-
-
-    console.log(`Total items: ${totalCount}`);
-    console.log(`Total price: $${totalPrice.toFixed(2)}`);
-}
-
-function updateQuantity(name, newQuantity) {
-    const item = shoppingBasket.find(function (item) {
-        return item.name === name
-    })
-
-    if (item) {
-        item.quantity = newQuantity
-    } else {
-        console.log(`Item "${name}" not found in the shopping basket.`);
-    }
-}
-
-renderList()
-
-// showBasket()
-
-// addItem("Banana", 1.50, 1);
-
-// showBasket()
-
-// removeItem("Eggs");
-
-// removeItem("Coconut");
-
-// showBasket()
-
-// updateQuantity("Milk", 2)
-
-// updateQuantity("Coconut", 2)
-
-// showBasket()
+renderList();
