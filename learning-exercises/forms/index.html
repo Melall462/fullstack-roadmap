@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <form id="detailsForm">
+        <input id="name" placeholder="name" required>
+        <input id="email" type="email" placeholder="email" required>
+        <input id="age" type="number" min="1" max="100" placeholder="age" required>
+        <button type="submit">Submit</button>
+    </form>
+
+    <form id="passwordForm">
+        <input id="password" type="password" minlength="8" placeholder="password" required>
+        <button>Submit Password</button>
+        <p>Requirements:</p>
+        <p id="lengthCheck">☐ At least 8 characters</p>
+        <p id="numberCheck">☐ Contains a number</p>
+        <p id="caseCheck">☐ Contains an uppercase letter</p>
+    </form>
+
+    <form id="emailForm">
+        <input id="nameInput" placeholder="name">
+        <input id="emailInput" type="email" placeholder="email">
+        <input id="subjectInput" placeholder="subject">
+        <input id="messageInput" type="text" placeholder="message">
+
+        <button type="submit">Send Email</button>
+
+        <p id="nameCheck"></p>
+        <p id="emailCheck"></p>
+        <p id="subjectCheck"></p>
+        <p id="messageCheck"></p>
+    </form>
+
+    <script src="forms.js"></script>
+</body>
+</html>
