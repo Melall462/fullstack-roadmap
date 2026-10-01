@@ -22,8 +22,11 @@ const shoppingBasket =
         }
     ];
 
+const addItemForm = document.getElementById("addItemForm")
+
 const nameInput = document.getElementById("name")
-const price = document.getElementById("price")
+const priceInput = document.getElementById("price")
+const quantityInput = document.getElementById("quantity")
 const addItemButton = document.getElementById("addItem")
 const list = document.getElementById("list")
 const totalItems = document.getElementById("totalItems")
@@ -90,14 +93,32 @@ function renderList() {
     totalPriceElement.textContent = `Total Price: $${totalPrice.toFixed(2)}`
 };
 
-addItemButton.addEventListener("click", function() {
-    addItem(nameInput.value, Number(price.value), 1)
+addItemForm.addEventListener("submit", function(event) {
+    event.preventDefault()
 
-    nameInput.value = "";
-    price.value = "";
+    let hasErrors = false;
+    let itemQuantity = 1;
 
-    renderList();
-});
+    if (nameInput.value === "") {
+        console.log("Item error")
+        hasErrors = true
+    }
+    if (priceInput.value === "" || priceInput.value <= 0 || !Number(priceInput.value)) {
+        console.log("Price error")
+        hasErrors = true
+    }
+    if (quantityInput.value !== "") {
+        itemQuantity = quantityInput.value
+    }
+
+    if (!hasErrors) {
+        addItem(nameInput.value, Number(priceInput.value), Number(itemQuantity))
+        nameInput.value = ""
+        priceInput.value = ""
+        quantityInput.value = ""
+        console.log(shoppingBasket)
+    }
+})
 
 
 function addItem(name, price, quantity) {
@@ -106,6 +127,7 @@ function addItem(name, price, quantity) {
         price: price,
         quantity: quantity
     });
+    renderList()
 };
 
 
