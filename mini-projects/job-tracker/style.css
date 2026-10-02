@@ -1,0 +1,26 @@
+label {
+    display: flex;
+    flex-direction: row;
+    padding-bottom: 10px;
+}
+
+input,
+select {
+    margin-right: 5px;
+}
+
+label span {
+    min-width: 70px;
+}
+
+#jobList li span {
+    display: block;
+}
+
+h2 {
+    margin: 0px;
+    padding-top: 10px;
+}
+#divider {
+    padding-bottom: 5px
+}

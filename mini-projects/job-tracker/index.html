@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Job Tracker</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <h1>Job Tracker</h1>
+
+    <form id="trackerForm">
+        <label>
+            <span>Customer</span>
+            <input type="text" name="customer">
+            <span id="customerCheck"></span>
+        </label>
+
+        <label>
+            <span>Vehicle</span>
+            <input type="text" name="vehicle">
+            <span id="vehicleCheck"></span>
+        </label>
+
+        <label>
+            <span>Service</span>
+            <select name="service">
+                <option value="">Select a service</option>
+                <option value="exteriorDetail">Exterior Detail</option>
+                <option value="interiorDetail">Interior Detail</option>
+                <option value="fullDetail">Full Detail</option>
+            </select>
+            <span id="serviceCheck"></span>
+        </label>
+
+        <label>
+            <span>Price</span>
+            <input type="number" step="0.01" name="price">
+            <span id="priceCheck"></span>
+        </label>
+
+        <button type="submit">Add Job</button>
+    </form>
+
+    <h2>Jobs</h2>
+    <div id="divider">-------------------------------------------------</div>
+
+    <div id="totalJobs">Total Jobs: 0</div>
+    <div id="totalRevenue">Total Revenue: $0</div>
+
+    <div>
+        <ul id="jobList">
+
+        </ul>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
