@@ -8,10 +8,11 @@ const jobList = document.getElementById("jobList")
 const totalJobs = document.getElementById("totalJobs")
 const totalRevenue = document.getElementById("totalRevenue")
 
-const jobs = 
-    [
+const loadedJobs = loadJobs()
 
-    ]
+const jobs = loadedJobs
+
+renderJobs()
 
 form.addEventListener("submit", function(event) {
     event.preventDefault();
@@ -23,7 +24,7 @@ form.addEventListener("submit", function(event) {
     if (!hasError) {
         addJob(newJob)
         clearForm()
-        renderJobs()
+        renderJobs()    
     }
 });
 
@@ -77,6 +78,7 @@ function validateForm(newJob) {
 
 function addJob(job) {
     jobs.push(job)
+    saveJobs()
 }
 
 function clearForm() {
@@ -86,10 +88,7 @@ function clearForm() {
 function renderJobs() {
     jobList.innerHTML = ""
 
-    let totalJobsCount = 0
-
     jobs.forEach(function(job) {
-        totalJobsCount += 1
 
         const newJob = document.createElement("li")
 
@@ -140,8 +139,21 @@ function deleteJob(jobToDelete) {
     })
 
     jobs.splice(index, 1)
+    saveJobs()
 }
 
-function totals() {
+function saveJobs() {
+    localStorage.setItem("jobs", JSON.stringify(jobs))
+}
 
+function loadJobs() {
+    const storedJobs = localStorage.getItem("jobs")
+
+    if (storedJobs === null) {
+        return []
+    }
+
+    const parsedJobs = JSON.parse(storedJobs)
+
+    return parsedJobs
 }
