@@ -12,9 +12,17 @@ const publicRepos = document.getElementById("publicRepos")
 const githubLink = document.getElementById("githubLink")
 const repoList = document.getElementById("repoList")
 const repoTitle = document.getElementById("repoTitle")
+const pagination = document.getElementById("pagination")
+const previousButton = document.getElementById("previousButton")
+const nextButton = document.getElementById("nextButton")
+
+let currentPage =   1;
+let listOfRepos = [];
 
 findUserForm.addEventListener("submit", async (event) => {
     event.preventDefault()
+
+    pagination.style.display = "none";
 
     userImage.setAttribute("src", "")
     username.textContent = ""
@@ -30,14 +38,19 @@ findUserForm.addEventListener("submit", async (event) => {
     if (usernameInput.value !== "") {
         try {
             loading.textContent = "Loading..."
-            const user = await getUser(usernameInput.value)
+            const userInfo = await getInfo(usernameInput.value)
             loading.textContent = ""
 
-            renderUser(user)
+            listOfRepos = userInfo.userRepos;
+            currentPage = 1;
 
-            const userRepos = await getUserRepos(usernameInput.value)
-            
-            renderUserRepos(userRepos)
+            renderUser(userInfo.user)
+
+            renderUserRepos(userInfo.userRepos)
+
+            if (listOfRepos.length > 4) {
+                pagination.style.display = "block";
+            }
 
         } catch (error) {
             console.error(error)
@@ -48,46 +61,79 @@ findUserForm.addEventListener("submit", async (event) => {
     }
 })
 
-const getUser = async (username) => {
-    const response = await fetch(`https://api.github.com/users/${username}`)
+const getInfo = async (username) => {
+    const [userResponse, reposResponse] = await Promise.all(
+        [
+            fetch(`https://api.github.com/users/${username}`),
+            fetch(`https://api.github.com/users/${username}/repos`)
+        ]
+    )
 
-    if (!response.ok) {
-        throw new Error(`HTTP error: ${response.status}`)
+    if (!userResponse.ok) {
+        throw new Error(`HTTP error:${userResponse.status}`)
     }
 
-    const user = await response.json()
-
-    return user
-}
-
-const getUserRepos = async (username) =>{
-    const response = await fetch(`https://api.github.com/users/${username}/repos`)
-
-    if (!response.ok) {
-        throw new Error(`HTTP error: ${response.status}`)
+    if (!reposResponse.ok) {
+        throw new Error(`HTTP error:${reposResponse.status}`)
     }
 
-    const userRepos = await response.json()
+    const [user, userRepos] = await Promise.all(
+        [
+            userResponse.json(),
+            reposResponse.json()
+        ]
+    )
 
-    return userRepos
+    return {user, userRepos}
 }
 
 const renderUser = (user) => {
     userImage.setAttribute("src", user.avatar_url)
     username.textContent = user.login
-    nameText.textContent = user.name
-    bio.textContent = user.bio
-    followers.textContent = `Follower: ${user.followers}`
+    if (!user.name) {
+        nameText.textContent = "Name: -"
+    } else {
+        nameText.textContent = `Name: ${user.name}`
+    }
+    if (!user.bio) {
+        bio.textContent = "Bio: -"
+    } else {
+        bio.textContent = `Bio: ${user.bio}`
+    }    followers.textContent = `Follower: ${user.followers}`
     following.textContent = `Following: ${user.following}`
     publicRepos.textContent = `Public Repos: ${user.public_repos}`
     githubLink.setAttribute("href", user.html_url)
     githubLink.textContent = user.html_url
 }
 
+previousButton.addEventListener("click", () => {
+    if (currentPage > 1) {
+        currentPage -= 1
+        renderUserRepos(listOfRepos)
+    }
+})
+
+nextButton.addEventListener("click", () => {
+    const maxNumPages = Math.ceil(listOfRepos.length / 4)
+    if (currentPage < maxNumPages) {
+        currentPage += 1
+        renderUserRepos(listOfRepos)
+    }
+})
+
 const renderUserRepos = (userRepos) => {
     repoList.innerHTML = ""
 
-    userRepos.forEach((repo) => {
+    const perPage = 4;
+
+    console.log(currentPage)
+
+    let startIndex = (currentPage - 1) * perPage
+    let endIndex = startIndex + perPage
+
+    let pageRepos = (userRepos.slice(startIndex, endIndex))
+
+    pageRepos.forEach((repo) => {
         const newRepo = document.createElement("li")
 
         const repoName = document.createElement("span")
