@@ -12,10 +12,11 @@ import Name1 from "./exercises/05-state/NameExercise.jsx";
 import Name2 from "./exercises/06-forms/ControlledInputExercise.jsx";
 import CustomerListExercise from "./exercises/07-lists/CustomerListExercise.jsx";
 import CustomerSearchExercise from "./exercises/07-lists/CustomerSearchExercise.jsx";
+import Users from "./exercises/08-effects/users.jsx";
 import SpreadOperatorExercise from "./exercises/SpreadOperatorExercise.jsx";
 
 createRoot(document.getElementById('root')).render(
     <StrictMode>
-      <CustomerManager />
+      <Users />
     </StrictMode>,
 );
