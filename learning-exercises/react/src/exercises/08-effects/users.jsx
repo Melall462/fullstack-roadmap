@@ -1,19 +1,20 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect } from "react";
 
-function Users() {
+function FetchUsers() {
     const [users, setUsers] = useState([])
+    const [loading, setLoading] = useState(true)
     const [error, setError] = useState("")
-    const [isLoading, setIsLoading] = useState(true)
     const [searchTerm, setSearchTerm] = useState("")
 
-    const filteredUsers = users.filter((user) => user.name.toLowerCase().includes(searchTerm.toLowerCase()))
+    async function getUsers(signal) {
+        setError("")
+        setLoading(true)
 
-    async function fetchUsers() {
         try {
-            setIsLoading(true)
-            setError("")
-
-            const response = await fetch("https://jsonplaceholder.typicode.com/users")
+            const response = await fetch(
+                "https://jsonplaceholder.typicode.com/users",
+                { signal }
+            )
 
             if (!response.ok) {
                 throw new Error("Failed to fetch users")
@@ -22,42 +23,57 @@ function Users() {
             const data = await response.json()
             setUsers(data)
         } catch (error) {
-            setError(error.message)
+            if (error.name !== "AbortError") {
+                setError(error.message)
+            }
         } finally {
-            setIsLoading(false)
+            setLoading(false)
         }
     }
-
+    
     useEffect(() => {
-        fetchUsers()
+        const controller = new AbortController()
+        getUsers(controller.signal)
+
+        return () => {
+            controller.abort()
+        }
     }, [])
+
+    const filteredUsers = users.filter((user) => (
+        user.name.toLowerCase().includes(searchTerm.toLowerCase())
+    ))
 
     return (
         <div>
             <h1>Users</h1>
-
-            <input type="text" value={searchTerm} onChange={(event) => setSearchTerm(event.target.value)} placeholder="Name"/>
-
-            {error && (
-                <button onClick={fetchUsers} disabled={isLoading}>
-                    {isLoading ? "Loading..." : "Retry"}
-                </button>
-            )}
-
-
-            {isLoading && <p>Loading users...</p>}
-
-            {error && <p>Error: {error}</p>}
-
-            {!isLoading && !error && (
-                <ul>
-                    {filteredUsers.length === 0 ? "No users found" : filteredUsers.map((user) => (
-                        <li key={user.id}>{user.name}</li>
-                    ))}
-                </ul>
+            {loading ? (
+                <p>Loading users...</p>
+            ) : error ? (
+                <div>
+                    <p>{error}</p>
+                    <button onClick={() => getUsers(new AbortController().signal)}>Retry</button>                
+                    </div>
+            ) : (
+                <div>
+                    <input type="text" value={searchTerm} onChange={(event) => setSearchTerm(event.target.value)}/>
+                    {filteredUsers.length === 0 ? (
+                        <p>No users found.</p>
+                    ) : (
+                        <ul>{filteredUsers.map((user) => (
+                            <li key={user.id}>
+                                <div>
+                                    {user.name} - {user.email}
+                                </div>
+                            </li>
+                        ))}
+                        </ul>
+                    )}
+                    
+                </div>
             )}
         </div>
     )
 }
 
-export default Users
+export default FetchUsers
