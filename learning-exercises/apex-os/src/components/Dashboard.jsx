@@ -23,7 +23,7 @@ function Dashboard() {
     }
 
     return (
-        <div>
+        <div className="dashboard">
             <h1>Customers</h1>
             <AddCustomerForm onAddCustomer={addCustomer} />
             <CustomerList customers={customers} />

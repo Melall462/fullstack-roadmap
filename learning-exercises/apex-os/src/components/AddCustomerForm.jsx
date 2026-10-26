@@ -33,27 +33,31 @@ function AddCustomerForm({ onAddCustomer }) {
     }
 
     return (
-        <div>
+        <div className="add-customer-form">
             <div className="inputs">
-                <input
-                    className={nameError ? "name-input invalid" : "name-input"}
-                    value={name}
-                    placeholder="Name"
-                    onChange={(event) => setName(event.target.value)}
-                />
-                {nameError && (
-                    <p className="error-message">{nameError}</p>
-                )}
+                <div className="input-group">
+                    <input
+                        className={nameError ? "name-input invalid" : "name-input"}
+                        value={name}
+                        placeholder="Name"
+                        onChange={(event) => setName(event.target.value)}
+                    />
+                    {nameError && (
+                        <p className="error-message">{nameError}</p>
+                    )}
+                </div>
 
-                <input
-                    className={emailError ? "email-input invalid" : "email-input"}
-                    value={email}
-                    placeholder="Email"                                                                                                                                      
-                    onChange={(event) => setEmail(event.target.value)}
-                />
-                {emailError && (
-                    <p className="error-message">{emailError}</p>
-                )}
+                <div className="input-group">
+                    <input
+                        className={emailError ? "email-input invalid" : "email-input"}
+                        value={email}
+                        placeholder="Email"                                                                                                                                      
+                        onChange={(event) => setEmail(event.target.value)}
+                    />
+                    {emailError && (
+                        <p className="error-message">{emailError}</p>
+                    )}
+                </div>
             </div>
 
             <button

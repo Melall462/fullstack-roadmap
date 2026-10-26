@@ -1,0 +1,62 @@
+body {
+    background-color: #333333;
+    color: white;
+    font-family: Arial, Helvetica, sans-serif;
+    margin: 0;
+}
+
+.dashboard {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+h1 {
+    font-weight: 700;
+}
+
+h2, p {
+    margin: 0px;
+}
+
+.customer-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 10px;
+    box-sizing: border-box;
+    border: 1px, solid, rgb(92, 92, 92);
+    background-color: rgb(46, 46, 46);
+    border-radius: 10px;
+    padding: 20px 50px;
+}
+
+.add-customer-button {
+    background: rgb(32, 92, 204);
+    border: 1px solid rgb(92, 92, 92);
+    border-radius: 5px;
+    width: 150px;
+    height: 30px;
+    align-self: center;
+    margin-top: 0;
+}
+
+.add-customer-form {
+    display: flex;
+    flex-direction: column;
+    justify-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.inputs {
+    display: flex;
+    gap: 8px;
+}
+
+.input-group {
+    display: flex;
+    flex-direction: column;
+    width: 190px;
+}
