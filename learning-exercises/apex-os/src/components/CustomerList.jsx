@@ -1,6 +1,6 @@
 import CustomerCard from "./CustomerCard";
 
-function CustomerList({customers}) {
+function CustomerList({customers, onDeleteCustomer}) {
     return (
         <div className="customer-list">
             {
@@ -11,6 +11,7 @@ function CustomerList({customers}) {
                         <CustomerCard
                             key={customer.id}
                             customer={customer}
+                            onDeleteCustomer={onDeleteCustomer}
                         />
                     </div>
                 ))

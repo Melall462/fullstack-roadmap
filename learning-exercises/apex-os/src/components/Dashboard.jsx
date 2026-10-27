@@ -28,12 +28,20 @@ function Dashboard() {
         ]);
     }
 
+    function deleteCustomer(customerId) {
+        setCustomers((previousCustomers) => 
+        previousCustomers.filter(
+            (customer) => customer.id !== customerId
+        )
+    )
+    }
+
     return (
         <div className="dashboard">
             <h1>Customers</h1>
             <AddCustomerForm onAddCustomer={addCustomer} />
             <SearchCustomers searchTerm={searchTerm} onSearchChange={setSearchTerm}/>
-            <CustomerList customers={filteredCustomers} />
+            <CustomerList customers={filteredCustomers} onDeleteCustomer={deleteCustomer}/>
         </div>
     );
 }
