@@ -1,4 +1,4 @@
-.name-input, .search-input {
+.name-input, .search-input, .email-input {
     border: 1px solid #ccc;
     padding: 10px;
     border-radius: 6px;
@@ -8,11 +8,11 @@
     border: 1px solid red;
 }
 
-.email-input {
+/* .email-input {
     border: 1px solid #ccc;
     padding: 10px;
     border-radius: 6px;
-}
+} */
 
 .email-input.invalid {
     border: 1px solid red;

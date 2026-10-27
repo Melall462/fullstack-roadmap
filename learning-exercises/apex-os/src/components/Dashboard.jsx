@@ -32,8 +32,17 @@ function Dashboard() {
         setCustomers((previousCustomers) => 
         previousCustomers.filter(
             (customer) => customer.id !== customerId
-        )
-    )
+        ))
+    }
+
+    function editCustomer(updatedCustomer) {
+        setCustomers((previousCustomers) =>
+            previousCustomers.map((customer) =>
+                customer.id === updatedCustomer.id
+                    ? updatedCustomer
+                    : customer
+            )
+        );
     }
 
     return (
@@ -41,7 +50,7 @@ function Dashboard() {
             <h1>Customers</h1>
             <AddCustomerForm onAddCustomer={addCustomer} />
             <SearchCustomers searchTerm={searchTerm} onSearchChange={setSearchTerm}/>
-            <CustomerList customers={filteredCustomers} onDeleteCustomer={deleteCustomer}/>
+            <CustomerList customers={filteredCustomers} onDeleteCustomer={deleteCustomer} onEditCustomer={editCustomer}/>
         </div>
     );
 }

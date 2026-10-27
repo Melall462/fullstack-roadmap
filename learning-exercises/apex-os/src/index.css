@@ -83,7 +83,12 @@ h2, p {
     text-align: center;
 }
 
-.delete-customer {
+.customer-buttons {
+    display: flex;
+    gap: 20px;
+}
+
+.delete-customer, .edit-customer {
     background-color: #dc2626;
     color: white;
     font-size: 15px;
@@ -94,7 +99,23 @@ h2, p {
     height: 25px;
 }
 
+.edit-customer {
+    background-color: green;
+}
+
+.edit-customer:hover {
+    background-color: rgb(2, 110, 2);
+    transition: 0.2s;
+    
+}
+
 .delete-customer:hover {
     background-color: #b91c1c;
     transition: 0.2s;
+}
+
+.edit-name, .edit-email {
+    border: 1px solid #ccc;
+    padding: 5.5px;
+    border-radius: 6px;
 }
