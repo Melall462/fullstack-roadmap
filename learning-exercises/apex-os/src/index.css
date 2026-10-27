@@ -32,14 +32,27 @@ h2, p {
     padding: 20px 50px;
 }
 
+.customer-list {
+    width: 270px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
 .add-customer-button {
     background: rgb(32, 92, 204);
+    color: rgb(233, 233, 233);
     border: 1px solid rgb(92, 92, 92);
     border-radius: 5px;
     width: 150px;
     height: 30px;
     align-self: center;
     margin-top: 0;
+}
+
+.add-customer-button:hover  {
+    background-color: rgb(29, 83, 184);
+    transition: 0.2s;
 }
 
 .add-customer-form {
@@ -59,4 +72,12 @@ h2, p {
     display: flex;
     flex-direction: column;
     width: 190px;
+}
+
+.search-input {
+    margin-bottom: 10px;
+}
+
+.no-results {
+    text-align: center;
 }

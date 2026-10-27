@@ -1,6 +1,7 @@
 import { useState } from "react";
 import CustomerList from "./CustomerList";
 import AddCustomerForm from "./AddCustomerForm";
+import SearchCustomers from "./SearchCustomers";
 
 function Dashboard() {
     const [customers, setCustomers] = useState([
@@ -8,6 +9,11 @@ function Dashboard() {
         { id: 2, name: "Sarah", email: "sarah@example.com" },
         { id: 3, name: "Mike", email: "mike@example.com" },
     ]);
+    const [searchTerm, setSearchTerm] = useState("")
+
+    const filteredCustomers = customers.filter((customer) => (
+        customer.name.toLowerCase().includes(searchTerm.toLowerCase())
+    ))
 
     function addCustomer(name, email) {
         const newCustomer = {
@@ -26,7 +32,8 @@ function Dashboard() {
         <div className="dashboard">
             <h1>Customers</h1>
             <AddCustomerForm onAddCustomer={addCustomer} />
-            <CustomerList customers={customers} />
+            <SearchCustomers searchTerm={searchTerm} onSearchChange={setSearchTerm}/>
+            <CustomerList customers={filteredCustomers} />
         </div>
     );
 }
