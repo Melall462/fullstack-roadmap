@@ -2,7 +2,8 @@ import { useState, useEffect } from "react";
 import CustomerList from "./CustomerList";
 import AddCustomerForm from "./AddCustomerForm";
 import SearchCustomers from "./SearchCustomers";
-import GetBusinessName from "./localStorage";
+import Customers from "./Customers"
+import Vehicles from "./Vehicles"
 
 function Dashboard() {
     const initialCustomers = [
@@ -60,7 +61,6 @@ function Dashboard() {
 
     return (
         <div className="dashboard">
-            <GetBusinessName/>
             <h1>Customers</h1>
             <AddCustomerForm onAddCustomer={addCustomer} />
             <SearchCustomers searchTerm={searchTerm} onSearchChange={setSearchTerm}/>
