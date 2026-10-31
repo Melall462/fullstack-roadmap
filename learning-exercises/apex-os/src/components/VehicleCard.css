@@ -1,0 +1,23 @@
+.vehicle-card {
+    background-color: rgb(46, 46, 46);
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid rgb(92, 92, 92);
+    border-radius: 10px;
+}
+
+.vehicle-card p {
+    margin: 5px;
+}
+
+.vehicle-info {
+    font-size: 24px;
+    font-weight: bold;
+}
+
+.add-vehicle {
+    display: flex;
+    max-width: 100vh;
+    gap: 10px;
+    flex: 1, 1, 1, 1, 1;
+}
