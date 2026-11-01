@@ -27,6 +27,7 @@ function Vehicles() {
     const [rego, setRego] = useState("")
     const [error, setError] = useState("")
     const [editingRego, setEditingRego] = useState(null)
+    const [isFormOpen, setIsFormOpen] = useState(false)
 
     const normalizedSearch = searchTerm.toLowerCase().trim()
 
@@ -79,12 +80,15 @@ function Vehicles() {
         setYear("")
         setRego("")
         setEditingRego(null)
+        setIsFormOpen(false)
+
     }
 
     function handleEditVehicle(rego) {
         const vehicle = vehicles.find((vehicle) => vehicle.rego === rego)
 
         if (vehicle) {
+            setIsFormOpen(true)
             setMake(vehicle.make)
             setModel(vehicle.model)
             setYear(vehicle.year)
@@ -100,23 +104,32 @@ function Vehicles() {
         setRego("")
         setEditingRego(null)
         setError("")
+        setIsFormOpen(false)
     }
 
     return(
         <div>
             <h1>Vehicles</h1>
             <input className="vehicle-search" placeholder="Search Vehicle..." value={searchTerm} onChange={(event) => setSearchTerm(event.target.value)}></input>
-            <form className="add-vehicle" onSubmit={addVehicle}>
-                <input className="vehicle-input" placeholder="Make" value={make} onChange={(event) => setMake(event.target.value)}></input>
-                <input className="vehicle-input" placeholder="Model" value={model} onChange={(event) => setModel(event.target.value)}></input>
-                <input className="vehicle-input" placeholder="Year" value={year} onChange={(event) => setYear(event.target.value)}></input>
-                <input className="vehicle-input" placeholder="Rego" value={rego} onChange={(event) => setRego(event.target.value)}></input>
-                {!editingRego ?
-                <button className="add-vehicle-button" type="submit">Add Vehicle</button> :
-                <button className="add-vehicle-button" type="submit">Update</button>
-                }
-            </form>
-            {error !== "" && <p>{error}</p>}
+            {!isFormOpen && <button className="add-vehicle-button-popup" type="button" onClick={() => setIsFormOpen(true)}>Add Vehicle</button>}
+            {isFormOpen &&
+                <div className="add-customer-popup" onClick={() => setIsFormOpen(false)}>
+                    <div className="modal-panel" onClick={(event) => event.stopPropagation()}>
+                        <form className="add-vehicle" onSubmit={(event) => (addVehicle(event))}>
+                            <input className="vehicle-input" placeholder="Make" value={make} onChange={(event) => setMake(event.target.value)}></input>
+                            <input className="vehicle-input" placeholder="Model" value={model} onC  hange={(event) => setModel(event.target.value)}></input>
+                            <input className="vehicle-input" placeholder="Year" value={year} onChange={(event) => setYear(event.target.value)}></input>
+                            <input className="vehicle-input" placeholder="Rego" value={rego} onChange={(event) => setRego(event.target.value)}></input>
+                            {error !== "" && <p>{error}</p>}
+                            {!editingRego ?
+                            <button className="add-vehicle-button" type="submit">Add Vehicle</button> :
+                            <button className="add-vehicle-button" type="submit">Update</button>
+                            }
+                            {isFormOpen && <button className="cancel-button" onClick={() => handleCancelEdit()} type="button">Cancel</button>}
+                        </form>
+                    </div>
+                </div>
+            }
             {
                 filteredVehicles.length === 0 ?
                 <p>No vehicles found</p> :    

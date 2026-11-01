@@ -8,19 +8,27 @@
 
 .add-vehicle {
   display: flex;
+  flex-direction: column;
   gap: 12px;
 }
 
-.add-vehicle .vehicle-input {
-    flex: 1;
-    min-width: 0;
-    box-sizing: border-box;
+.cancel-button, .add-vehicle-button {
+    height: 37px;
+    width: 100px;
+    align-self: center;
+    background: rgb(32, 92, 204);
+    color: rgb(233, 233, 233);
+    border: 1px solid rgb(92, 92, 92);
+    border-radius: 5px;
 }
 
-.add-vehicle .add-vehicle-button {
-    flex: 0.5;
-    min-width: 0;
-    box-sizing: border-box;
+.vehicle-input {
+    width: 189px;
+}
+
+.cancel-button {
+    margin-bottom: 20px;
+    background-color: #dc2626;
 }
 
 .vehicle-card {
@@ -59,4 +67,15 @@
 
 .edit-vehicle:hover {
     filter: brightness(80%);
+}
+
+.add-vehicle-button-popup {
+    margin-left: 10px;
+    height: 37px;
+    width: 100px;
+    align-self: center;
+    background-color: rgb(32, 92, 204);
+    border-radius: 5px;
+    border: 1px solid rgb(92, 92, 92);
+    color: white;
 }

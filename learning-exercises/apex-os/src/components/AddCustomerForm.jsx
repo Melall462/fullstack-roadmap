@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-function AddCustomerForm({ onAddCustomer }) {
+function AddCustomerForm({ onAddCustomer, onClose }) {
     const [name, setName] = useState("");
     const [email, setEmail] = useState("");
     const [nameError, setNameError] = useState(null)
@@ -65,6 +65,7 @@ function AddCustomerForm({ onAddCustomer }) {
             >
                 Add Customer
             </button>
+            <button className="cancel-add-customer" type="button" onClick={() => onClose()}>Cancel</button>
         </div>
     );
 }

@@ -34,19 +34,19 @@
     margin-top: 4px;
 }
 
-.add-customer-button {
+.add-customer-button, .cancel-add-customer {
     background: rgb(32, 92, 204);
     color: rgb(233, 233, 233);
     border: 1px solid rgb(92, 92, 92);
     border-radius: 5px;
-    width: 150px;
-    height: 30px;
+    width: 125px;
+    height: 35px;
     align-self: center;
     margin-top: 0;
     transition: 0.2s;
 }
 
-.add-customer-button:hover  {
+.add-customer-button:hover, .cancel-add-customer:hover {
     filter: brightness(80%);
 }
 
@@ -113,4 +113,28 @@
 
 .email-input.invalid {
     border: 1px solid red;
+}
+
+/* .add-customer-popup {
+    display: flex;
+    position: fixed;
+    inset: 0;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(53, 53, 53, 0.8);
+}
+
+.modal-panel {
+    background-color: rgb(59, 59, 59);
+    padding: 30px 30px 10px 30px;
+    border: 2px solid rgb(90, 90, 90);
+    border-radius: 10px;
+} */
+
+.cancel-add-customer {
+    background-color: #dc2626;
+}
+
+.search-input {
+    margin-top: 10px;
 }

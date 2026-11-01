@@ -24,6 +24,7 @@ function Customers() {
     }, [customers]);
 
     const [searchTerm, setSearchTerm] = useState("")
+    const [isFormOpen, setIsFormOpen] = useState(false)
 
     const filteredCustomers = customers.filter((customer) => (
         customer.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -62,7 +63,14 @@ function Customers() {
     return(
         <div className="customers">
             <h1>Customers</h1>
-            <AddCustomerForm onAddCustomer={addCustomer} />
+            {!isFormOpen && <button className="add-customer-button" onClick={() => setIsFormOpen(true)}>Add Customer</button>}
+            {isFormOpen &&
+                <div className="add-customer-popup" onClick={() => setIsFormOpen(false)}>
+                    <div className="modal-panel" onClick={(event) => event.stopPropagation()}>
+                        <AddCustomerForm onAddCustomer={(name, email) => (addCustomer(name, email), setIsFormOpen(false))} onClose={() => setIsFormOpen(false)} />
+                    </div>
+                </div>
+            }
             <SearchCustomers searchTerm={searchTerm} onSearchChange={setSearchTerm}/>
             <CustomerList customers={filteredCustomers} onDeleteCustomer={deleteCustomer} onEditCustomer={editCustomer}/>
         </div>
