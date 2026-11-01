@@ -107,13 +107,13 @@ function Vehicles() {
             <h1>Vehicles</h1>
             <input className="vehicle-search" placeholder="Search Vehicle..." value={searchTerm} onChange={(event) => setSearchTerm(event.target.value)}></input>
             <form className="add-vehicle" onSubmit={addVehicle}>
-                <input className="vehilce-input" placeholder="Make" value={make} onChange={(event) => setMake(event.target.value)}></input>
-                <input className="vehilce-input" placeholder="Model" value={model} onChange={(event) => setModel(event.target.value)}></input>
-                <input className="vehilce-input" placeholder="Year" value={year} onChange={(event) => setYear(event.target.value)}></input>
-                <input className="vehilce-input" placeholder="Rego" value={rego} onChange={(event) => setRego(event.target.value)}></input>
+                <input className="vehicle-input" placeholder="Make" value={make} onChange={(event) => setMake(event.target.value)}></input>
+                <input className="vehicle-input" placeholder="Model" value={model} onChange={(event) => setModel(event.target.value)}></input>
+                <input className="vehicle-input" placeholder="Year" value={year} onChange={(event) => setYear(event.target.value)}></input>
+                <input className="vehicle-input" placeholder="Rego" value={rego} onChange={(event) => setRego(event.target.value)}></input>
                 {!editingRego ?
                 <button className="add-vehicle-button" type="submit">Add Vehicle</button> :
-                <button className="vehilce-input" type="submit">Update</button>
+                <button className="add-vehicle-button" type="submit">Update</button>
                 }
             </form>
             {error !== "" && <p>{error}</p>}

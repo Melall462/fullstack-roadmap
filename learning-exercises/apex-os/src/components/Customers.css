@@ -1,0 +1,116 @@
+.customers {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.add-customer-form {
+    display: flex;
+    flex-direction: column;
+    justify-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.input-group {
+    display: flex;
+    flex-direction: column;
+    width: 190px;
+}
+
+.inputs {
+    display: flex;
+    gap: 8px;
+}
+
+.name-input.invalid {
+    border: 1px solid red;
+}
+
+.error-message {
+    color: red;
+    font-size: 14px;
+    margin-top: 4px;
+}
+
+.add-customer-button {
+    background: rgb(32, 92, 204);
+    color: rgb(233, 233, 233);
+    border: 1px solid rgb(92, 92, 92);
+    border-radius: 5px;
+    width: 150px;
+    height: 30px;
+    align-self: center;
+    margin-top: 0;
+    transition: 0.2s;
+}
+
+.add-customer-button:hover  {
+    filter: brightness(80%);
+}
+
+.customer-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 10px;
+    box-sizing: border-box;
+    border: 1px, solid, rgb(92, 92, 92);
+    background-color: rgb(46, 46, 46);
+    border-radius: 10px;
+    padding: 20px 50px;
+    box-shadow: 1px 4px 10px rgba(0, 0, 0, 0.25);
+}
+
+.edit-name, .edit-email {
+    border: 1px solid #ccc;
+    padding: 5.5px;
+    border-radius: 6px;
+}
+
+.customer-buttons {
+    display: flex;
+    gap: 20px;
+}
+
+.delete-customer, .edit-customer {
+    background-color: #dc2626;
+    color: white;
+    font-size: 15px;
+    border: 1px, solid, rgba(0, 0, 0, 0);
+    border-radius: 3px;
+    margin-top: 10px;
+    width: 70px;
+    height: 25px;
+    transition: 0.2s;
+}
+
+.edit-customer {
+    background-color: green;
+}
+
+.edit-customer:hover, .delete-customer:hover {
+    filter: brightness(80%);
+}
+
+.customer-list {
+    width: 270px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.no-results {
+    text-align: center;
+}
+
+.email-input {
+    border: 1px solid #ccc;
+    padding: 10px;
+    border-radius: 6px;
+}
+
+.email-input.invalid {
+    border: 1px solid red;
+}

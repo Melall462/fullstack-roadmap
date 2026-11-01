@@ -1,5 +1,3 @@
-import "./VehicleCard.css"
-
 function VehicleCard({ vehicle, onEdit, editingRego, onCancel }) {
     return(
         <div className="vehicle-card">
