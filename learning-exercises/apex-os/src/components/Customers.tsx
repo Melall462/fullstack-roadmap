@@ -4,6 +4,12 @@ import AddCustomerForm from "./AddCustomerForm";
 import SearchCustomers from "./SearchCustomers";
 import "./Customers.css"
 
+type Customer = {
+    id: number,
+    name: string,
+    email: string
+}
+
 const initialCustomers = [
     { id: 1, name: "John", email: "john@example.com" },
     { id: 2, name: "Sarah", email: "sarah@example.com" },
@@ -11,7 +17,7 @@ const initialCustomers = [
 ];
 
 function Customers() {
-    const [customers, setCustomers] = useState(() => {
+    const [customers, setCustomers] = useState<Customer[]>(() => {
         const savedCustomers = localStorage.getItem("customers")
 
         return savedCustomers ?
@@ -30,7 +36,7 @@ function Customers() {
         customer.name.toLowerCase().includes(searchTerm.toLowerCase())
     ))
 
-    function addCustomer(name, email) {
+    function addCustomer(name: string, email: string) {
         const newCustomer = {
             id: Date.now(),
             name,
@@ -43,14 +49,14 @@ function Customers() {
         ]);
     }
 
-    function deleteCustomer(customerId) {
+    function deleteCustomer(customerId: number) {
         setCustomers((previousCustomers) => 
         previousCustomers.filter(
             (customer) => customer.id !== customerId
         ))
     }
 
-    function editCustomer(updatedCustomer) {
+    function editCustomer(updatedCustomer: Customer) {
         setCustomers((previousCustomers) =>
             previousCustomers.map((customer) =>
                 customer.id === updatedCustomer.id
@@ -67,7 +73,7 @@ function Customers() {
             {isFormOpen &&
                 <div className="add-customer-popup" onClick={() => setIsFormOpen(false)}>
                     <div className="modal-panel" onClick={(event) => event.stopPropagation()}>
-                        <AddCustomerForm onAddCustomer={(name, email) => (addCustomer(name, email), setIsFormOpen(false))} onClose={() => setIsFormOpen(false)} />
+                        <AddCustomerForm onAddCustomer={(name: string, email: string) => (addCustomer(name, email), setIsFormOpen(false))} onClose={() => setIsFormOpen(false)} />
                     </div>
                 </div>
             }

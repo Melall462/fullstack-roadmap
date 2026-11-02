@@ -1,9 +1,9 @@
 import './App.css'
 import { Route, Routes, Navigate } from 'react-router';
-import Dashboard from './components/Dashboard.jsx';
-import Customers from './components/Customers.jsx';
-import Vehicles from './components/Vehicles.jsx';
-import Layout from './components/Layout.jsx';
+import Dashboard from './components/Dashboard';
+import Customers from './components/Customers';
+import Vehicles from './components/Vehicles';
+import Layout from './components/Layout';
 
 function App() {
   return (

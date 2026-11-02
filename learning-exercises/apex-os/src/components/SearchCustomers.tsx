@@ -1,4 +1,9 @@
-function SearchCustomers({ searchTerm, onSearchChange }) {
+type props = {
+    searchTerm: string,
+    onSearchChange: (value: string) => void
+}
+
+function SearchCustomers({ searchTerm, onSearchChange }: props) {
     return (
         <div>
             <input

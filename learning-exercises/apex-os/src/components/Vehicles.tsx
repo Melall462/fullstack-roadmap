@@ -1,14 +1,18 @@
-import { useState, useEffect } from "react"
+import React, { useState, useEffect } from "react"
 import VehicleCard from "./VehicleCard"
 import "./Vehicles.css"
+import type { Vehicle } from "../types/vehicle"
+
+type EditingRego = string | null
+
 
 function Vehicles() {
 
     const [searchTerm, setSearchTerm] = useState("")
-    const [vehicles, setVehicles] = useState(() => {
-        const savedVehicles = JSON.parse(localStorage.getItem("vehicles"));
+    const [vehicles, setVehicles] = useState<Vehicle[]>(() => {
+        const savedVehicles = localStorage.getItem("vehicles");
         if (savedVehicles !== null) {
-            return savedVehicles
+            return JSON.parse(savedVehicles)
         } else {
             return [
                 {make: "Toyota", model: "Corolla", year: 2018, rego: "ABC123", customerId: "1", color: "White", lastDetail: "2026-10-15", notes: "None"},
@@ -26,7 +30,7 @@ function Vehicles() {
     const [year, setYear] = useState("")
     const [rego, setRego] = useState("")
     const [error, setError] = useState("")
-    const [editingRego, setEditingRego] = useState(null)
+    const [editingRego, setEditingRego] = useState<EditingRego>(null)
     const [isFormOpen, setIsFormOpen] = useState(false)
 
     const normalizedSearch = searchTerm.toLowerCase().trim()
@@ -37,7 +41,7 @@ function Vehicles() {
         vehicle.model.toLowerCase().includes(normalizedSearch)
     ))
 
-    function addVehicle(event) {
+    function addVehicle(event: React.SubmitEvent<HTMLFormElement>) {
         event.preventDefault()
         setError("")
         if (make.trim() === "" || model.trim() === "" || year === "" || rego.trim() === "") {
@@ -57,12 +61,12 @@ function Vehicles() {
         }
 
         if (editingRego) {
-            setVehicles(vehicles.map((vehicle) => {
+            setVehicles(vehicles.map((vehicle: Vehicle) => {
                 if (vehicle.rego === editingRego) {
                     const newVehicle = {...vehicle, 
                         make: formattedMake, 
                         model: formattedModel, 
-                        year,
+                        year: year,
                         rego: formattedRego}
                     return (
                         newVehicle
@@ -72,7 +76,7 @@ function Vehicles() {
             }
         ))
         } else {
-            const newVehicle = {make: formattedMake, model: formattedModel, year, rego: formattedRego, customerId: "", color: "Black", lastDetail: "2026-10-29", notes: "None"}
+            const newVehicle: Vehicle = {make: formattedMake, model: formattedModel, year, rego: formattedRego, customerId: "", color: "Black", lastDetail: "2026-10-29", notes: "None"}
             setVehicles([...vehicles, newVehicle])
         }
         setMake("")
@@ -84,7 +88,7 @@ function Vehicles() {
 
     }
 
-    function handleEditVehicle(rego) {
+    function handleEditVehicle(rego: string) {
         const vehicle = vehicles.find((vehicle) => vehicle.rego === rego)
 
         if (vehicle) {
@@ -107,6 +111,12 @@ function Vehicles() {
         setIsFormOpen(false)
     }
 
+    function handleDelete(rego: string) {
+        setVehicles((previousVehicles) =>
+            previousVehicles.filter((vehicle) => vehicle.rego !== rego)
+        )
+    }
+
     return(
         <div>
             <h1>Vehicles</h1>
@@ -117,7 +127,7 @@ function Vehicles() {
                     <div className="modal-panel" onClick={(event) => event.stopPropagation()}>
                         <form className="add-vehicle" onSubmit={(event) => (addVehicle(event))}>
                             <input className="vehicle-input" placeholder="Make" value={make} onChange={(event) => setMake(event.target.value)}></input>
-                            <input className="vehicle-input" placeholder="Model" value={model} onC  hange={(event) => setModel(event.target.value)}></input>
+                            <input className="vehicle-input" placeholder="Model" value={model} onChange={(event) => setModel(event.target.value)}></input>
                             <input className="vehicle-input" placeholder="Year" value={year} onChange={(event) => setYear(event.target.value)}></input>
                             <input className="vehicle-input" placeholder="Rego" value={rego} onChange={(event) => setRego(event.target.value)}></input>
                             {error !== "" && <p>{error}</p>}
@@ -135,7 +145,7 @@ function Vehicles() {
                 <p>No vehicles found</p> :    
                 <div>
                     {filteredVehicles.map((vehicle) => (
-                        <VehicleCard key={vehicle.rego} vehicle={vehicle} onEdit={handleEditVehicle} editingRego={editingRego} onCancel={handleCancelEdit}/>
+                        <VehicleCard key={vehicle.rego} vehicle={vehicle} onEdit={handleEditVehicle} editingRego={editingRego} onCancel={handleCancelEdit} onDelete={handleDelete}/>
                     ))}
                 </div>
             }

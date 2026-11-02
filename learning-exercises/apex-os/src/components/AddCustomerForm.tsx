@@ -1,10 +1,15 @@
 import { useState } from "react";
 
-function AddCustomerForm({ onAddCustomer, onClose }) {
+type Props = {
+    onAddCustomer: (name: string, email: string) => void,
+    onClose: () => void
+}
+
+function AddCustomerForm({ onAddCustomer, onClose }: Props) {
     const [name, setName] = useState("");
     const [email, setEmail] = useState("");
-    const [nameError, setNameError] = useState(null)
-    const [emailError, setEmailError] = useState(null)
+    const [nameError, setNameError] = useState<string | null>(null)
+    const [emailError, setEmailError] = useState<string | null>(null)
 
     function handleSubmit() {
         if (

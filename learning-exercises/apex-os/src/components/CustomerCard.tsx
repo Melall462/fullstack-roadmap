@@ -1,6 +1,18 @@
 import { useState } from "react";
 
-function CustomerCard({customer, onDeleteCustomer, onEditCustomer}) {
+type Customer = {
+    id: number,
+    name: string,
+    email: string
+}
+
+type Props ={
+    customer: Customer,
+    onDeleteCustomer: (customerId: number) => void,
+    onEditCustomer: (value: Customer) => void
+}
+
+function CustomerCard({customer, onDeleteCustomer, onEditCustomer}: Props) {
     const [isEditing, setIsEditing] = useState(false);
     const [name, setName] = useState(customer.name);
     const [email, setEmail] = useState(customer.email);
