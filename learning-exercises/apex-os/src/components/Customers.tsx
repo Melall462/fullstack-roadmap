@@ -1,49 +1,68 @@
-import { useState } from "react";
-import { useData } from "../data/useData";
-import CustomerList from "./CustomerList";
-import AddCustomerForm from "./AddCustomerForm";
-import SearchCustomers from "./SearchCustomers";
-import "./Customers.css"
+import { useState } from "react"
+import { Link, useNavigate } from "react-router"
+import { useData } from "../data/useData"
+import { formatDate, todayISO } from "../utils/date"
+import { EmptyState, Flash, PageHeader, SearchBox } from "./ui"
 
 function Customers() {
-    const { customers, vehicles, jobs, addCustomer, updateCustomer, deleteCustomer } = useData()
+    const { customers, vehicles, jobs } = useData()
+    const navigate = useNavigate()
+    const [search, setSearch] = useState("")
 
-    const [searchTerm, setSearchTerm] = useState("")
-    const [isFormOpen, setIsFormOpen] = useState(false)
+    const term = search.toLowerCase().trim()
+    const today = todayISO()
 
-    const normalizedSearch = searchTerm.toLowerCase().trim()
+    const filtered = customers
+        .filter((c) => c.name.toLowerCase().includes(term) || c.email.toLowerCase().includes(term))
+        .sort((a, b) => a.name.localeCompare(b.name))
 
-    const filteredCustomers = customers.filter((customer) => (
-        customer.name.toLowerCase().includes(normalizedSearch) ||
-        customer.email.toLowerCase().includes(normalizedSearch)
-    ))
+    return (
+        <div>
+            <Flash />
+            <PageHeader title="Customers" subtitle={`${customers.length} customer${customers.length === 1 ? "" : "s"}`}>
+                <SearchBox value={search} onChange={setSearch} placeholder="Search name or email" />
+                <Link className="btn btn-primary" to="/customers/new">Add customer</Link>
+            </PageHeader>
 
-    function handleDeleteCustomer(customerId: number) {
-        const vehicleCount = vehicles.filter((v) => v.customerId === customerId).length
-        const jobCount = jobs.filter((j) => j.customerId === customerId).length
-        if (vehicleCount + jobCount > 0 &&
-            !window.confirm(`This will also delete ${vehicleCount} vehicle(s) and ${jobCount} job(s). Continue?`)) {
-            return
-        }
-        deleteCustomer(customerId)
-    }
-
-    return(
-        <div className="customers">
-            <h1>Customers</h1>
-            {!isFormOpen && <button className="add-customer-button" onClick={() => setIsFormOpen(true)}>Add Customer</button>}
-            {isFormOpen &&
-                <div className="modal-overlay" onClick={() => setIsFormOpen(false)}>
-                    <div className="modal-panel" onClick={(event) => event.stopPropagation()}>
-                        <AddCustomerForm onAddCustomer={(name: string, email: string) => {
-                            addCustomer(name, email)
-                            setIsFormOpen(false)
-                        }} onClose={() => setIsFormOpen(false)} />
-                    </div>
-                </div>
-            }
-            <SearchCustomers searchTerm={searchTerm} onSearchChange={setSearchTerm}/>
-            <CustomerList customers={filteredCustomers} vehicles={vehicles} jobs={jobs} onDeleteCustomer={handleDeleteCustomer} onEditCustomer={updateCustomer}/>
+            <div className="card">
+                {filtered.length === 0 ?
+                    <EmptyState title={term ? "No customers match that search" : "No customers yet"}>
+                        {term ? "Try another name or email." : "Add your first customer to get started."}
+                    </EmptyState> :
+                    <table className="table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Vehicles</th>
+                                <th className="num">Jobs</th>
+                                <th>Last job</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {filtered.map((customer) => {
+                                const owned = vehicles.filter((v) => v.customerId === customer.id)
+                                const customerJobs = jobs.filter((j) => j.customerId === customer.id)
+                                const lastJob = customerJobs.map((j) => j.date).filter((d) => d <= today).sort().at(-1)
+                                return (
+                                    <tr key={customer.id} className="clickable" onClick={() => navigate(`/customers/${customer.id}`)}>
+                                        <td className="lead">
+                                            <Link className="main" to={`/customers/${customer.id}`} onClick={(event) => event.stopPropagation()}>{customer.name}</Link>
+                                        </td>
+                                        <td data-label="Email" className="cell-sub">{customer.email}</td>
+                                        <td data-label="Vehicles">
+                                            {owned.length === 0 ? <span className="cell-sub">None</span> :
+                                                owned.map((v) => <span key={v.id} className="plate" style={{ marginRight: 4 }}>{v.rego}</span>)}
+                                        </td>
+                                        <td data-label="Jobs" className="num">{customerJobs.length}</td>
+                                        <td data-label="Last job" className="cell-sub tnum">{lastJob ? formatDate(lastJob) : "None yet"}</td>
+                                    </tr>
+                                )
+                            })}
+                        </tbody>
+                    </table>
+                }
+            </div>
         </div>
     )
 }

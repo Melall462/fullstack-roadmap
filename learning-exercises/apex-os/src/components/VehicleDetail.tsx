@@ -1,0 +1,79 @@
+import { Link, useNavigate, useParams } from "react-router"
+import { useData } from "../data/useData"
+import { formatDate, formatMoney } from "../utils/date"
+import { EmptyState, Flash, PageHeader, StatusBadge } from "./ui"
+
+function VehicleDetail() {
+    const { vehicles, customers, jobs, services, deleteVehicle } = useData()
+    const navigate = useNavigate()
+    const params = useParams()
+    const vehicle = vehicles.find((v) => v.id === Number(params["id"]))
+
+    if (!vehicle) {
+        return <PageHeader title="Vehicle not found" back={{ to: "/vehicles", label: "Vehicles" }} />
+    }
+
+    const owner = customers.find((c) => c.id === vehicle.customerId)
+    const history = jobs
+        .filter((j) => j.vehicleId === vehicle.id)
+        .sort((a, b) => `${b.date} ${b.time}`.localeCompare(`${a.date} ${a.time}`))
+
+    function handleDelete() {
+        if (!vehicle) return
+        const detail = history.length > 0 ? ` This also deletes ${history.length} job(s).` : ""
+        if (!window.confirm(`Delete ${vehicle.rego}?${detail}`)) return
+        deleteVehicle(vehicle.id)
+        navigate(owner ? `/customers/${owner.id}` : "/vehicles", { state: { flash: "Vehicle deleted." } })
+    }
+
+    return (
+        <div>
+            <Flash />
+            <PageHeader
+                title={<><span className="plate" style={{ fontSize: 22, verticalAlign: "middle" }}>{vehicle.rego}</span> {vehicle.make} {vehicle.model}</>}
+                back={owner ? { to: `/customers/${owner.id}`, label: owner.name } : { to: "/vehicles", label: "Vehicles" }}
+            >
+                <Link className="btn" to={`/vehicles/${vehicle.id}/edit`}>Edit</Link>
+                {owner && <Link className="btn btn-primary" to={`/jobs/new?vehicle=${vehicle.id}`}>New job</Link>}
+            </PageHeader>
+
+            <div className="card card-pad">
+                <dl className="facts">
+                    <div><dt>Owner</dt><dd>{owner ? <Link to={`/customers/${owner.id}`}>{owner.name}</Link> : <span className="secondary">No owner</span>}</dd></div>
+                    <div><dt>Year</dt><dd className="tnum">{vehicle.year}</dd></div>
+                    <div><dt>Colour</dt><dd>{vehicle.color || <span className="secondary">Not set</span>}</dd></div>
+                    <div><dt>Last detail</dt><dd className="tnum">{vehicle.lastDetail ? formatDate(vehicle.lastDetail) : <span className="secondary">Never</span>}</dd></div>
+                </dl>
+                {vehicle.notes && <p className="notice" style={{ marginTop: 16 }}>{vehicle.notes}</p>}
+            </div>
+
+            <section className="section">
+                <h2>Job history</h2>
+                <div className="card">
+                    {history.length === 0 ?
+                        <EmptyState title="No jobs for this vehicle yet." /> :
+                        <table className="table">
+                            <thead><tr><th>When</th><th>Service</th><th>Status</th><th className="num">Total</th></tr></thead>
+                            <tbody>
+                                {history.map((job) => (
+                                    <tr key={job.id} className="clickable" onClick={() => navigate(`/jobs/${job.id}`)}>
+                                        <td className="lead"><Link className="main tnum" to={`/jobs/${job.id}`} onClick={(e) => e.stopPropagation()}>{formatDate(job.date)}</Link></td>
+                                        <td data-label="Service">{services.find((s) => s.id === job.serviceId)?.name ?? "Service removed"}</td>
+                                        <td data-label="Status"><StatusBadge status={job.status} /></td>
+                                        <td data-label="Total" className="num">{formatMoney(job.price)}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    }
+                </div>
+            </section>
+
+            <section className="section">
+                <div><button className="btn-link danger" onClick={handleDelete}>Delete vehicle</button></div>
+            </section>
+        </div>
+    )
+}
+
+export default VehicleDetail
