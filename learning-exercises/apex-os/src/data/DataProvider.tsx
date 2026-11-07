@@ -1,6 +1,7 @@
 import { useEffect, useState, type ReactNode } from "react"
 import { DataContext, type DataContextValue } from "./DataContext"
 import { loadList, saveList } from "./storage"
+import { createDemoData } from "./demo"
 import { seedCustomers, seedJobs, seedServices, seedVehicles } from "./seed"
 import type { Customer } from "../types/customer"
 import type { Vehicle } from "../types/vehicle"
@@ -56,6 +57,7 @@ function DataProvider({ children }: { children: ReactNode }) {
     const [vehicles, setVehicles] = useState<Vehicle[]>(initial.vehicles)
     const [services, setServices] = useState<Service[]>(initial.services)
     const [jobs, setJobs] = useState<Job[]>(initial.jobs)
+    const [businessName, setBusinessNameState] = useState(() => localStorage.getItem("businessName") || "Apex Mobile Detailing")
 
     useEffect(() => saveList("customers", customers), [customers])
     useEffect(() => saveList("vehicles", vehicles), [vehicles])
@@ -75,9 +77,24 @@ function DataProvider({ children }: { children: ReactNode }) {
         vehicles,
         services,
         jobs,
+        businessName,
+
+        setBusinessName(name) {
+            setBusinessNameState(name)
+            localStorage.setItem("businessName", name)
+        },
+        loadDemoData() {
+            const demo = createDemoData()
+            setCustomers(demo.customers)
+            setVehicles(demo.vehicles)
+            setServices(demo.services)
+            setJobs(demo.jobs)
+        },
 
         addCustomer(name, email) {
-            setCustomers((previous) => [...previous, { id: newId(), name, email }])
+            const id = newId()
+            setCustomers((previous) => [...previous, { id, name, email }])
+            return id
         },
         updateCustomer(customer) {
             setCustomers((previous) => previous.map((c) => c.id === customer.id ? customer : c))
@@ -90,7 +107,9 @@ function DataProvider({ children }: { children: ReactNode }) {
         },
 
         addVehicle(vehicle) {
-            setVehicles((previous) => [...previous, { ...vehicle, id: newId() }])
+            const id = newId()
+            setVehicles((previous) => [...previous, { ...vehicle, id }])
+            return id
         },
         updateVehicle(vehicle) {
             setVehicles((previous) => previous.map((v) => v.id === vehicle.id ? vehicle : v))
@@ -116,8 +135,10 @@ function DataProvider({ children }: { children: ReactNode }) {
         },
 
         addJob(job) {
-            setJobs((previous) => [...previous, { ...job, id: newId() }])
+            const id = newId()
+            setJobs((previous) => [...previous, { ...job, id }])
             recordDetail(job)
+            return id
         },
         updateJob(job) {
             setJobs((previous) => previous.map((j) => j.id === job.id ? job : j))

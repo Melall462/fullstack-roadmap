@@ -31,5 +31,5 @@ export function formatDate(isoDate: string): string {
 }
 
 export function formatMoney(amount: number): string {
-    return `$${amount.toFixed(2)}`
+    return `$${amount.toLocaleString("en-NZ", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 }

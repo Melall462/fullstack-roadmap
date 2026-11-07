@@ -9,12 +9,16 @@ export type DataContextValue = {
     vehicles: Vehicle[],
     services: Service[],
     jobs: Job[],
+    businessName: string,
 
-    addCustomer: (name: string, email: string) => void,
+    setBusinessName: (name: string) => void,
+    loadDemoData: () => void,
+
+    addCustomer: (name: string, email: string) => number,
     updateCustomer: (customer: Customer) => void,
     deleteCustomer: (customerId: number) => void,
 
-    addVehicle: (vehicle: Omit<Vehicle, "id">) => void,
+    addVehicle: (vehicle: Omit<Vehicle, "id">) => number,
     updateVehicle: (vehicle: Vehicle) => void,
     deleteVehicle: (vehicleId: number) => void,
 
@@ -22,7 +26,7 @@ export type DataContextValue = {
     updateService: (service: Service) => void,
     deleteService: (serviceId: number) => void,
 
-    addJob: (job: Omit<Job, "id">) => void,
+    addJob: (job: Omit<Job, "id">) => number,
     updateJob: (job: Job) => void,
     deleteJob: (jobId: number) => void,
     setJobStatus: (jobId: number, status: JobStatus) => void,
