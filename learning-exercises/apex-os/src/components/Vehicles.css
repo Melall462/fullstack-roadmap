@@ -6,12 +6,6 @@
     width: 200px;
 }
 
-.add-vehicle {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
 .cancel-button, .add-vehicle-button {
     height: 37px;
     width: 100px;
@@ -51,9 +45,8 @@
 
 .add-vehicle {
     display: flex;
-    max-width: 100vh;
-    gap: 10px;
-    flex: 1, 1, 1, 1, 1;
+    flex-direction: column;
+    gap: 12px;
 }
 
 .edit-vehicle {

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import type React from "react";
 
 type Props = {
     onAddCustomer: (name: string, email: string) => void,
@@ -11,7 +12,8 @@ function AddCustomerForm({ onAddCustomer, onClose }: Props) {
     const [nameError, setNameError] = useState<string | null>(null)
     const [emailError, setEmailError] = useState<string | null>(null)
 
-    function handleSubmit() {
+    function handleSubmit(event: React.SubmitEvent<HTMLFormElement>) {
+        event.preventDefault()
         if (
             name.trim() === "" ||
             email.trim() === "" ||
@@ -37,7 +39,7 @@ function AddCustomerForm({ onAddCustomer, onClose }: Props) {
     }
 
     return (
-        <div className="add-customer-form">
+        <form className="add-customer-form" onSubmit={handleSubmit}>
             <div className="inputs">
                 <div className="input-group">
                     <input
@@ -66,12 +68,12 @@ function AddCustomerForm({ onAddCustomer, onClose }: Props) {
 
             <button
                 className="add-customer-button"
-                onClick={handleSubmit}
+                type="submit"
             >
                 Add Customer
             </button>
             <button className="cancel-add-customer" type="button" onClick={() => onClose()}>Cancel</button>
-        </div>
+        </form>
     );
 }
 

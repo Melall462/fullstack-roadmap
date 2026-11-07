@@ -1,25 +1,33 @@
-import React, { useState, useEffect } from "react"
+import { useState, useEffect } from "react"
+import type React from "react"
 import VehicleCard from "./VehicleCard"
 import "./Vehicles.css"
 import type { Vehicle } from "../types/vehicle"
 
 type EditingRego = string | null
 
+const initialVehicles: Vehicle[] = [
+    {make: "Toyota", model: "Corolla", year: "2018", rego: "ABC123", customerId: "1", color: "White", lastDetail: "2026-10-15", notes: "None"},
+    {make: "Honda", model: "Civic", year: "2024", rego: "DEF456", customerId: "2", color: "Red", lastDetail: "2026-08-22", notes: "Pet hair on back seat"}
+]
+
+function loadVehicles(): Vehicle[] {
+    try {
+        const savedVehicles = localStorage.getItem("vehicles")
+        if (savedVehicles === null) return initialVehicles
+        const parsed: Vehicle[] = JSON.parse(savedVehicles)
+        // older saved data stored year as a number
+        return parsed.map((vehicle) => ({ ...vehicle, year: String(vehicle.year) }))
+    } catch {
+        return initialVehicles
+    }
+}
+
 
 function Vehicles() {
 
     const [searchTerm, setSearchTerm] = useState("")
-    const [vehicles, setVehicles] = useState<Vehicle[]>(() => {
-        const savedVehicles = localStorage.getItem("vehicles");
-        if (savedVehicles !== null) {
-            return JSON.parse(savedVehicles)
-        } else {
-            return [
-                {make: "Toyota", model: "Corolla", year: 2018, rego: "ABC123", customerId: "1", color: "White", lastDetail: "2026-10-15", notes: "None"},
-                {make: "Honda", model: "Civic", year: 2024, rego: "DEF456", customerId: "2", color: "Red", lastDetail: "2026-8-22", notes: "Pet hair on back seat"}
-            ]
-        }
-    })
+    const [vehicles, setVehicles] = useState<Vehicle[]>(loadVehicles)
 
     useEffect(() => {
         localStorage.setItem("vehicles", JSON.stringify(vehicles))
@@ -49,9 +57,14 @@ function Vehicles() {
             return
         }
 
+        if (!/^\d{4}$/.test(year.trim())) {
+            setError("Please enter a 4-digit year")
+            return
+        }
+
         const formattedMake = make.charAt(0).toUpperCase() + make.slice(1).toLowerCase()
         const formattedModel = model.charAt(0).toUpperCase() + model.slice(1).toLowerCase()
-        const formattedRego = rego.toUpperCase()
+        const formattedRego = rego.trim().toUpperCase()
 
         if (vehicles.some((vehicle) => (
             vehicle.rego === formattedRego && vehicle.rego !== editingRego
@@ -61,12 +74,12 @@ function Vehicles() {
         }
 
         if (editingRego) {
-            setVehicles(vehicles.map((vehicle: Vehicle) => {
+            setVehicles((previousVehicles) => previousVehicles.map((vehicle) => {
                 if (vehicle.rego === editingRego) {
                     const newVehicle = {...vehicle, 
                         make: formattedMake, 
                         model: formattedModel, 
-                        year: year,
+                        year: year.trim(),
                         rego: formattedRego}
                     return (
                         newVehicle
@@ -76,8 +89,8 @@ function Vehicles() {
             }
         ))
         } else {
-            const newVehicle: Vehicle = {make: formattedMake, model: formattedModel, year, rego: formattedRego, customerId: "", color: "Black", lastDetail: "2026-10-29", notes: "None"}
-            setVehicles([...vehicles, newVehicle])
+            const newVehicle: Vehicle = {make: formattedMake, model: formattedModel, year: year.trim(), rego: formattedRego, customerId: "", color: "", lastDetail: "", notes: ""}
+            setVehicles((previousVehicles) => [...previousVehicles, newVehicle])
         }
         setMake("")
         setModel("")
@@ -123,7 +136,7 @@ function Vehicles() {
             <input className="vehicle-search" placeholder="Search Vehicle..." value={searchTerm} onChange={(event) => setSearchTerm(event.target.value)}></input>
             {!isFormOpen && <button className="add-vehicle-button-popup" type="button" onClick={() => setIsFormOpen(true)}>Add Vehicle</button>}
             {isFormOpen &&
-                <div className="add-customer-popup" onClick={() => setIsFormOpen(false)}>
+                <div className="modal-overlay" onClick={handleCancelEdit}>
                     <div className="modal-panel" onClick={(event) => event.stopPropagation()}>
                         <form className="add-vehicle" onSubmit={(event) => (addVehicle(event))}>
                             <input className="vehicle-input" placeholder="Make" value={make} onChange={(event) => setMake(event.target.value)}></input>
@@ -135,7 +148,7 @@ function Vehicles() {
                             <button className="add-vehicle-button" type="submit">Add Vehicle</button> :
                             <button className="add-vehicle-button" type="submit">Update</button>
                             }
-                            {isFormOpen && <button className="cancel-button" onClick={() => handleCancelEdit()} type="button">Cancel</button>}
+                            <button className="cancel-button" onClick={handleCancelEdit} type="button">Cancel</button>
                         </form>
                     </div>
                 </div>

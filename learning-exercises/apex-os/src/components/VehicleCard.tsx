@@ -1,13 +1,4 @@
-type Vehicle = {
-    make: string,
-    model: string,
-    year: string,
-    rego: string,
-    customerId: string,
-    color: string,
-    lastDetail: string,
-    notes: string
-}
+import type { Vehicle } from "../types/vehicle"
 
 type props = {
     vehicle: Vehicle,
@@ -21,8 +12,8 @@ type props = {
 function VehicleCard({ vehicle, onEdit, editingRego, onCancel, onDelete }: props) {
     return(
         <div className="vehicle-card">
-            <p className="vehicle-info">{vehicle.year} {vehicle.make} {vehicle.model} - {vehicle.rego} - {vehicle.color}</p>
-            <p className="vehicle-last-detail">{vehicle.lastDetail}</p>
+            <p className="vehicle-info">{vehicle.year} {vehicle.make} {vehicle.model} - {vehicle.rego}{vehicle.color && ` - ${vehicle.color}`}</p>
+            <p className="vehicle-last-detail">{vehicle.lastDetail ? `Last detail: ${vehicle.lastDetail}` : "Not detailed yet"}</p>
             <p className="vehicle-notes">{vehicle.notes}</p>
             <button
                 className="edit-vehicle"

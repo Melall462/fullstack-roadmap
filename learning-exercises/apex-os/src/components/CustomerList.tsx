@@ -1,10 +1,5 @@
 import CustomerCard from "./CustomerCard";
-
-type Customer = {
-    name: string,
-    email: string,
-    id: number
-}
+import type { Customer } from "../types/customer";
 
 type Props ={
     customers: Customer[],

@@ -1,10 +1,5 @@
 import { useState } from "react";
-
-type Customer = {
-    id: number,
-    name: string,
-    email: string
-}
+import type { Customer } from "../types/customer";
 
 type Props ={
     customer: Customer,
@@ -18,7 +13,7 @@ function CustomerCard({customer, onDeleteCustomer, onEditCustomer}: Props) {
     const [email, setEmail] = useState(customer.email);
 
     function saveCustomer() {
-        if (!name.trim() || !email.trim()) {
+        if (!name.trim() || !email.trim() || !email.includes("@")) {
             return;
         }
 
@@ -42,7 +37,7 @@ function CustomerCard({customer, onDeleteCustomer, onEditCustomer}: Props) {
             {
                 isEditing ?
                 <div>
-                    <input className="edit-name" value={name}onChange={(event) => setName(event.target.value)}></input>
+                    <input className="edit-name" value={name} onChange={(event) => setName(event.target.value)}></input>
                     <input className="edit-email" value={email} onChange={(event) => setEmail(event.target.value)}></input>
                     <div className="customer-buttons">
                         <button className="edit-customer" onClick={saveCustomer}>Save</button>

@@ -29,7 +29,7 @@ h2, p {
     margin-bottom: 10px;
 }
 
-.add-customer-popup {
+.modal-overlay {
     display: flex;
     position: fixed;
     inset: 0;
