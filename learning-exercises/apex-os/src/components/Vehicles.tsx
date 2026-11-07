@@ -1,133 +1,120 @@
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import type React from "react"
 import VehicleCard from "./VehicleCard"
 import "./Vehicles.css"
+import { useData } from "../data/useData"
 import type { Vehicle } from "../types/vehicle"
 
-type EditingRego = string | null
-
-const initialVehicles: Vehicle[] = [
-    {make: "Toyota", model: "Corolla", year: "2018", rego: "ABC123", customerId: "1", color: "White", lastDetail: "2026-10-15", notes: "None"},
-    {make: "Honda", model: "Civic", year: "2024", rego: "DEF456", customerId: "2", color: "Red", lastDetail: "2026-08-22", notes: "Pet hair on back seat"}
-]
-
-function loadVehicles(): Vehicle[] {
-    try {
-        const savedVehicles = localStorage.getItem("vehicles")
-        if (savedVehicles === null) return initialVehicles
-        const parsed: Vehicle[] = JSON.parse(savedVehicles)
-        // older saved data stored year as a number
-        return parsed.map((vehicle) => ({ ...vehicle, year: String(vehicle.year) }))
-    } catch {
-        return initialVehicles
-    }
+type VehicleForm = {
+    make: string,
+    model: string,
+    year: string,
+    rego: string,
+    color: string,
+    customerId: string,
+    notes: string
 }
 
+const emptyForm: VehicleForm = { make: "", model: "", year: "", rego: "", color: "", customerId: "", notes: "" }
+
+function capitalize(value: string): string {
+    const trimmed = value.trim()
+    return trimmed.charAt(0).toUpperCase() + trimmed.slice(1).toLowerCase()
+}
 
 function Vehicles() {
+    const { vehicles, customers, jobs, addVehicle, updateVehicle, deleteVehicle } = useData()
 
     const [searchTerm, setSearchTerm] = useState("")
-    const [vehicles, setVehicles] = useState<Vehicle[]>(loadVehicles)
-
-    useEffect(() => {
-        localStorage.setItem("vehicles", JSON.stringify(vehicles))
-    }, [vehicles])
-
-    const [make, setMake] = useState("")
-    const [model, setModel] = useState("")
-    const [year, setYear] = useState("")
-    const [rego, setRego] = useState("")
+    const [form, setForm] = useState<VehicleForm>(emptyForm)
     const [error, setError] = useState("")
-    const [editingRego, setEditingRego] = useState<EditingRego>(null)
+    const [editingId, setEditingId] = useState<number | null>(null)
     const [isFormOpen, setIsFormOpen] = useState(false)
 
     const normalizedSearch = searchTerm.toLowerCase().trim()
 
+    function ownerName(vehicle: Vehicle): string {
+        return customers.find((c) => c.id === vehicle.customerId)?.name ?? ""
+    }
+
     const filteredVehicles = vehicles.filter((vehicle) => (
         vehicle.rego.toLowerCase().includes(normalizedSearch) ||
         vehicle.make.toLowerCase().includes(normalizedSearch) ||
-        vehicle.model.toLowerCase().includes(normalizedSearch)
+        vehicle.model.toLowerCase().includes(normalizedSearch) ||
+        ownerName(vehicle).toLowerCase().includes(normalizedSearch)
     ))
 
-    function addVehicle(event: React.SubmitEvent<HTMLFormElement>) {
+    function updateField(field: keyof VehicleForm, value: string) {
+        setForm((previous) => ({ ...previous, [field]: value }))
+    }
+
+    function closeForm() {
+        setForm(emptyForm)
+        setEditingId(null)
+        setError("")
+        setIsFormOpen(false)
+    }
+
+    function handleSubmit(event: React.SubmitEvent<HTMLFormElement>) {
         event.preventDefault()
         setError("")
-        if (make.trim() === "" || model.trim() === "" || year === "" || rego.trim() === "") {
-            setError("Please fill in all required fields")
+
+        if (form.make.trim() === "" || form.model.trim() === "" || form.year.trim() === "" || form.rego.trim() === "") {
+            setError("Please fill in make, model, year and rego")
             return
         }
-
-        if (!/^\d{4}$/.test(year.trim())) {
+        if (!/^\d{4}$/.test(form.year.trim())) {
             setError("Please enter a 4-digit year")
             return
         }
 
-        const formattedMake = make.charAt(0).toUpperCase() + make.slice(1).toLowerCase()
-        const formattedModel = model.charAt(0).toUpperCase() + model.slice(1).toLowerCase()
-        const formattedRego = rego.trim().toUpperCase()
-
-        if (vehicles.some((vehicle) => (
-            vehicle.rego === formattedRego && vehicle.rego !== editingRego
-        ))) {
-            setError("Vehicle already added")
+        const rego = form.rego.trim().toUpperCase()
+        if (vehicles.some((vehicle) => vehicle.rego === rego && vehicle.id !== editingId)) {
+            setError("A vehicle with that rego already exists")
             return
         }
 
-        if (editingRego) {
-            setVehicles((previousVehicles) => previousVehicles.map((vehicle) => {
-                if (vehicle.rego === editingRego) {
-                    const newVehicle = {...vehicle, 
-                        make: formattedMake, 
-                        model: formattedModel, 
-                        year: year.trim(),
-                        rego: formattedRego}
-                    return (
-                        newVehicle
-                    )
-                }
-                return vehicle
-            }
-        ))
+        const details = {
+            make: capitalize(form.make),
+            model: capitalize(form.model),
+            year: form.year.trim(),
+            rego,
+            color: capitalize(form.color),
+            customerId: form.customerId === "" ? null : Number(form.customerId),
+            notes: form.notes.trim(),
+        }
+
+        const existing = vehicles.find((vehicle) => vehicle.id === editingId)
+        if (existing) {
+            updateVehicle({ ...existing, ...details })
         } else {
-            const newVehicle: Vehicle = {make: formattedMake, model: formattedModel, year: year.trim(), rego: formattedRego, customerId: "", color: "", lastDetail: "", notes: ""}
-            setVehicles((previousVehicles) => [...previousVehicles, newVehicle])
+            addVehicle({ ...details, lastDetail: "" })
         }
-        setMake("")
-        setModel("")
-        setYear("")
-        setRego("")
-        setEditingRego(null)
-        setIsFormOpen(false)
-
+        closeForm()
     }
 
-    function handleEditVehicle(rego: string) {
-        const vehicle = vehicles.find((vehicle) => vehicle.rego === rego)
+    function handleEdit(vehicleId: number) {
+        const vehicle = vehicles.find((v) => v.id === vehicleId)
+        if (!vehicle) return
+        setForm({
+            make: vehicle.make,
+            model: vehicle.model,
+            year: vehicle.year,
+            rego: vehicle.rego,
+            color: vehicle.color,
+            customerId: vehicle.customerId === null ? "" : String(vehicle.customerId),
+            notes: vehicle.notes,
+        })
+        setEditingId(vehicleId)
+        setIsFormOpen(true)
+    }
 
-        if (vehicle) {
-            setIsFormOpen(true)
-            setMake(vehicle.make)
-            setModel(vehicle.model)
-            setYear(vehicle.year)
-            setRego(vehicle.rego)
-            setEditingRego(rego)
+    function handleDelete(vehicleId: number) {
+        const jobCount = jobs.filter((j) => j.vehicleId === vehicleId).length
+        if (jobCount > 0 && !window.confirm(`This will also delete ${jobCount} job(s) for this vehicle. Continue?`)) {
+            return
         }
-    }
-
-    function handleCancelEdit() {
-        setMake("")
-        setModel("")
-        setYear("")
-        setRego("")
-        setEditingRego(null)
-        setError("")
-        setIsFormOpen(false)
-    }
-
-    function handleDelete(rego: string) {
-        setVehicles((previousVehicles) =>
-            previousVehicles.filter((vehicle) => vehicle.rego !== rego)
-        )
+        deleteVehicle(vehicleId)
     }
 
     return(
@@ -136,29 +123,42 @@ function Vehicles() {
             <input className="vehicle-search" placeholder="Search Vehicle..." value={searchTerm} onChange={(event) => setSearchTerm(event.target.value)}></input>
             {!isFormOpen && <button className="add-vehicle-button-popup" type="button" onClick={() => setIsFormOpen(true)}>Add Vehicle</button>}
             {isFormOpen &&
-                <div className="modal-overlay" onClick={handleCancelEdit}>
+                <div className="modal-overlay" onClick={closeForm}>
                     <div className="modal-panel" onClick={(event) => event.stopPropagation()}>
-                        <form className="add-vehicle" onSubmit={(event) => (addVehicle(event))}>
-                            <input className="vehicle-input" placeholder="Make" value={make} onChange={(event) => setMake(event.target.value)}></input>
-                            <input className="vehicle-input" placeholder="Model" value={model} onChange={(event) => setModel(event.target.value)}></input>
-                            <input className="vehicle-input" placeholder="Year" value={year} onChange={(event) => setYear(event.target.value)}></input>
-                            <input className="vehicle-input" placeholder="Rego" value={rego} onChange={(event) => setRego(event.target.value)}></input>
-                            {error !== "" && <p>{error}</p>}
-                            {!editingRego ?
-                            <button className="add-vehicle-button" type="submit">Add Vehicle</button> :
-                            <button className="add-vehicle-button" type="submit">Update</button>
-                            }
-                            <button className="cancel-button" onClick={handleCancelEdit} type="button">Cancel</button>
+                        <form className="add-vehicle" onSubmit={handleSubmit}>
+                            <h2>{editingId === null ? "Add Vehicle" : "Edit Vehicle"}</h2>
+                            <select className="vehicle-input" value={form.customerId} onChange={(event) => updateField("customerId", event.target.value)}>
+                                <option value="">No owner</option>
+                                {customers.map((customer) => (
+                                    <option key={customer.id} value={customer.id}>{customer.name}</option>
+                                ))}
+                            </select>
+                            <input className="vehicle-input" placeholder="Make" value={form.make} onChange={(event) => updateField("make", event.target.value)}></input>
+                            <input className="vehicle-input" placeholder="Model" value={form.model} onChange={(event) => updateField("model", event.target.value)}></input>
+                            <input className="vehicle-input" placeholder="Year" inputMode="numeric" value={form.year} onChange={(event) => updateField("year", event.target.value)}></input>
+                            <input className="vehicle-input" placeholder="Rego" value={form.rego} onChange={(event) => updateField("rego", event.target.value)}></input>
+                            <input className="vehicle-input" placeholder="Colour" value={form.color} onChange={(event) => updateField("color", event.target.value)}></input>
+                            <textarea className="vehicle-input" placeholder="Notes" value={form.notes} onChange={(event) => updateField("notes", event.target.value)}></textarea>
+                            {error !== "" && <p className="error-message">{error}</p>}
+                            <button className="add-vehicle-button" type="submit">{editingId === null ? "Add Vehicle" : "Update"}</button>
+                            <button className="cancel-button" onClick={closeForm} type="button">Cancel</button>
                         </form>
                     </div>
                 </div>
             }
             {
                 filteredVehicles.length === 0 ?
-                <p>No vehicles found</p> :    
+                <p>No vehicles found</p> :
                 <div>
                     {filteredVehicles.map((vehicle) => (
-                        <VehicleCard key={vehicle.rego} vehicle={vehicle} onEdit={handleEditVehicle} editingRego={editingRego} onCancel={handleCancelEdit} onDelete={handleDelete}/>
+                        <VehicleCard
+                            key={vehicle.id}
+                            vehicle={vehicle}
+                            ownerName={ownerName(vehicle)}
+                            jobCount={jobs.filter((j) => j.vehicleId === vehicle.id).length}
+                            onEdit={handleEdit}
+                            onDelete={handleDelete}
+                        />
                     ))}
                 </div>
             }

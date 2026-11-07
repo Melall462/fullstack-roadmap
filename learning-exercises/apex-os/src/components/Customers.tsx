@@ -1,29 +1,12 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import { useData } from "../data/useData";
 import CustomerList from "./CustomerList";
 import AddCustomerForm from "./AddCustomerForm";
 import SearchCustomers from "./SearchCustomers";
 import "./Customers.css"
-import type { Customer } from "../types/customer";
-
-const initialCustomers: Customer[] = [
-    { id: 1, name: "John", email: "john@example.com" },
-    { id: 2, name: "Sarah", email: "sarah@example.com" },
-    { id: 3, name: "Mike", email: "mike@example.com" },
-];
 
 function Customers() {
-    const [customers, setCustomers] = useState<Customer[]>(() => {
-        try {
-            const savedCustomers = localStorage.getItem("customers")
-            return savedCustomers ? JSON.parse(savedCustomers) : initialCustomers
-        } catch {
-            return initialCustomers
-        }
-    })
-
-    useEffect(() => {
-        localStorage.setItem("customers", JSON.stringify(customers));
-    }, [customers]);
+    const { customers, vehicles, jobs, addCustomer, updateCustomer, deleteCustomer } = useData()
 
     const [searchTerm, setSearchTerm] = useState("")
     const [isFormOpen, setIsFormOpen] = useState(false)
@@ -35,34 +18,14 @@ function Customers() {
         customer.email.toLowerCase().includes(normalizedSearch)
     ))
 
-    function addCustomer(name: string, email: string) {
-        const newCustomer = {
-            id: Date.now(),
-            name,
-            email
-        };
-
-        setCustomers((previousCustomers) => [
-            ...previousCustomers,
-            newCustomer
-        ]);
-    }
-
-    function deleteCustomer(customerId: number) {
-        setCustomers((previousCustomers) => 
-        previousCustomers.filter(
-            (customer) => customer.id !== customerId
-        ))
-    }
-
-    function editCustomer(updatedCustomer: Customer) {
-        setCustomers((previousCustomers) =>
-            previousCustomers.map((customer) =>
-                customer.id === updatedCustomer.id
-                    ? updatedCustomer
-                    : customer
-            )
-        );
+    function handleDeleteCustomer(customerId: number) {
+        const vehicleCount = vehicles.filter((v) => v.customerId === customerId).length
+        const jobCount = jobs.filter((j) => j.customerId === customerId).length
+        if (vehicleCount + jobCount > 0 &&
+            !window.confirm(`This will also delete ${vehicleCount} vehicle(s) and ${jobCount} job(s). Continue?`)) {
+            return
+        }
+        deleteCustomer(customerId)
     }
 
     return(
@@ -80,7 +43,7 @@ function Customers() {
                 </div>
             }
             <SearchCustomers searchTerm={searchTerm} onSearchChange={setSearchTerm}/>
-            <CustomerList customers={filteredCustomers} onDeleteCustomer={deleteCustomer} onEditCustomer={editCustomer}/>
+            <CustomerList customers={filteredCustomers} vehicles={vehicles} jobs={jobs} onDeleteCustomer={handleDeleteCustomer} onEditCustomer={updateCustomer}/>
         </div>
     )
 }

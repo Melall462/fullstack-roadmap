@@ -121,3 +121,10 @@
 .search-input {
     margin-top: 10px;
 }
+.customer-vehicles {
+    list-style: none;
+    padding: 0;
+    margin: 8px 0 4px 0;
+    text-align: center;
+    font-size: 14px;
+}

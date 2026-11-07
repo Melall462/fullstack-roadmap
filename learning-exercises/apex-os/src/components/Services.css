@@ -1,0 +1,30 @@
+.service-form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.services-table {
+    width: 100%;
+    max-width: 700px;
+    border-collapse: collapse;
+    margin-top: 16px;
+    background-color: rgb(46, 46, 46);
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.services-table th,
+.services-table td {
+    text-align: left;
+    padding: 10px 12px;
+    border-bottom: 1px solid rgb(70, 70, 70);
+}
+
+.services-table th {
+    color: rgb(180, 180, 180);
+    font-weight: normal;
+    font-size: 14px;
+}

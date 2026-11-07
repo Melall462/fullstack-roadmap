@@ -17,6 +17,14 @@ function Layout() {
                     to={"/vehicles"}
                     className={({isActive}) => isActive ? "active" : ""}    
                 >Vehicles</NavLink>
+                <NavLink 
+                    to={"/jobs"}
+                    className={({isActive}) => isActive ? "active" : ""}    
+                >Jobs</NavLink>
+                <NavLink 
+                    to={"/services"}
+                    className={({isActive}) => isActive ? "active" : ""}    
+                >Services</NavLink>
             </aside>
             <main className="main-content">
                 <Outlet />

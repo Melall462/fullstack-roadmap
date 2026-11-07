@@ -44,3 +44,72 @@ h2, p {
     border: 2px solid rgb(90, 90, 90);
     border-radius: 10px;
 }
+select, textarea {
+    border: 1px solid #ccc;
+    padding: 9px;
+    border-radius: 6px;
+    font-family: inherit;
+}
+
+textarea {
+    min-height: 60px;
+    resize: vertical;
+}
+
+.muted {
+    color: rgb(180, 180, 180);
+}
+
+.error-message {
+    color: rgb(255, 90, 90);
+}
+
+/* Shared buttons */
+.btn {
+    background: rgb(70, 70, 70);
+    color: white;
+    border: 1px solid rgb(92, 92, 92);
+    border-radius: 5px;
+    padding: 8px 14px;
+    cursor: pointer;
+    transition: filter 0.2s;
+}
+
+.btn:hover:not(:disabled) {
+    filter: brightness(80%);
+}
+
+.btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.btn-primary {
+    background: rgb(32, 92, 204);
+}
+
+.btn-danger {
+    background: #dc2626;
+}
+
+.btn-small {
+    padding: 4px 10px;
+    font-size: 14px;
+}
+
+.row-actions {
+    display: flex;
+    gap: 6px;
+}
+
+.badge {
+    font-size: 12px;
+    padding: 2px 8px;
+    border-radius: 10px;
+    background: rgb(70, 70, 70);
+    white-space: nowrap;
+}
+
+.badge.status-booked { background: rgb(32, 92, 204); }
+.badge.status-in-progress { background: rgb(217, 160, 30); }
+.badge.status-done { background: rgb(46, 160, 90); }

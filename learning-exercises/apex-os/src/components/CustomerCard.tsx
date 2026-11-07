@@ -1,13 +1,16 @@
 import { useState } from "react";
 import type { Customer } from "../types/customer";
+import type { Vehicle } from "../types/vehicle";
 
 type Props ={
     customer: Customer,
+    vehicles: Vehicle[],
+    jobCount: number,
     onDeleteCustomer: (customerId: number) => void,
     onEditCustomer: (value: Customer) => void
 }
 
-function CustomerCard({customer, onDeleteCustomer, onEditCustomer}: Props) {
+function CustomerCard({customer, vehicles, jobCount, onDeleteCustomer, onEditCustomer}: Props) {
     const [isEditing, setIsEditing] = useState(false);
     const [name, setName] = useState(customer.name);
     const [email, setEmail] = useState(customer.email);
@@ -47,6 +50,15 @@ function CustomerCard({customer, onDeleteCustomer, onEditCustomer}: Props) {
                 <div>
                     <h2>{customer.name}</h2>
                     <p>{customer.email}</p>
+                    <ul className="customer-vehicles">
+                        {vehicles.length === 0 ?
+                            <li className="muted">No vehicles</li> :
+                            vehicles.map((vehicle) => (
+                                <li key={vehicle.id}>{vehicle.year} {vehicle.make} {vehicle.model} - {vehicle.rego}</li>
+                            ))
+                        }
+                    </ul>
+                    <p className="muted">{jobCount} job{jobCount === 1 ? "" : "s"}</p>
                     <div className="customer-buttons">
                         <button className="edit-customer" onClick={() => setIsEditing(true)}>Edit</button>
                         <button className="delete-customer" onClick={() => onDeleteCustomer(customer.id)}>Delete</button>
