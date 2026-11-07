@@ -1,6 +1,7 @@
 import { Link, NavLink, Outlet, useLocation } from "react-router"
 import { useData } from "../data/useData"
 import Icon, { type IconName } from "./Icon"
+import { UndoToast } from "./ui"
 
 const navItems: { to: string, label: string, icon: IconName }[] = [
     { to: "/jobs", label: "Jobs", icon: "jobs" },
@@ -12,7 +13,7 @@ const navItems: { to: string, label: string, icon: IconName }[] = [
 const linkClass = ({ isActive }: { isActive: boolean }) => isActive ? "nav-link active" : "nav-link"
 
 function Layout() {
-    const { businessName } = useData()
+    const { settings } = useData()
     const { pathname } = useLocation()
     const isNewJob = pathname === "/jobs/new"
 
@@ -36,9 +37,21 @@ function Layout() {
 
                 <div className="sidebar-footer">
                     <NavLink to="/services" className={linkClass}><Icon name="services" /> Services</NavLink>
-                    <div className="business-name">{businessName}</div>
+                    <NavLink to="/settings" className={linkClass}><Icon name="settings" /> Settings</NavLink>
+                    <div className="business-name">{settings.businessName}</div>
                 </div>
             </aside>
+
+            <header className="topbar">
+                <Link className="brand" to="/jobs">
+                    <span className="brand-mark" aria-hidden="true">A</span>
+                    <span className="brand-name">ApexOS</span>
+                </Link>
+                <nav className="topbar-links" aria-label="More">
+                    <NavLink to="/services" aria-label="Services"><Icon name="services" /></NavLink>
+                    <NavLink to="/settings" aria-label="Settings"><Icon name="settings" /></NavLink>
+                </nav>
+            </header>
 
             <div className="main">
                 <main className="main-content">
@@ -56,6 +69,8 @@ function Layout() {
                     <Icon name="plus" /> New job
                 </NavLink>
             </nav>
+
+            <UndoToast />
         </div>
     )
 }

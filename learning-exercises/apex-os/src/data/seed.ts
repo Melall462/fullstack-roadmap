@@ -5,9 +5,9 @@ import type { Job } from "../types/job"
 import { addDays, todayISO } from "../utils/date"
 
 export const seedCustomers: Customer[] = [
-    { id: 1, name: "John", email: "john@example.com" },
-    { id: 2, name: "Sarah", email: "sarah@example.com" },
-    { id: 3, name: "Mike", email: "mike@example.com" },
+    { id: 1, name: "John", email: "john@example.com", phone: "021 555 0101" },
+    { id: 2, name: "Sarah", email: "sarah@example.com", phone: "" },
+    { id: 3, name: "Mike", email: "mike@example.com", phone: "027 555 0199" },
 ]
 
 export const seedVehicles: Vehicle[] = [
@@ -24,6 +24,6 @@ export const seedServices: Service[] = [
 const today = todayISO()
 
 export const seedJobs: Job[] = [
-    { id: 1, customerId: 1, vehicleId: 1, serviceId: 3, date: today, time: "10:00", price: 220, status: "booked", notes: "" },
-    { id: 2, customerId: 2, vehicleId: 2, serviceId: 2, date: addDays(today, 2), time: "13:30", price: 120, status: "booked", notes: "Focus on back seat" },
+    { id: 1, customerId: 1, vehicleId: 1, items: [{ serviceId: 3, name: "Full Detail", price: 220, durationMins: 240 }], date: today, time: "10:00", price: 220, status: "booked", notes: "", invoiceNumber: null, invoiceDate: "" },
+    { id: 2, customerId: 2, vehicleId: 2, items: [{ serviceId: 2, name: "Interior Detail", price: 120, durationMins: 120 }], date: addDays(today, 2), time: "13:30", price: 120, status: "booked", notes: "Focus on back seat", invoiceNumber: null, invoiceDate: "" },
 ]

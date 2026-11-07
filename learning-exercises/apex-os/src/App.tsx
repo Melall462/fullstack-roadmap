@@ -13,6 +13,8 @@ import VehicleForm from './components/VehicleForm'
 import VehicleDetail from './components/VehicleDetail'
 import Services from './components/Services'
 import Analytics from './components/Analytics'
+import Invoice from './components/Invoice'
+import Settings from './components/Settings'
 
 // Forms read their starting values once, so give each visit a fresh copy
 // (e.g. /jobs/new?vehicle=1 then /jobs/new?vehicle=2).
@@ -32,6 +34,7 @@ function App() {
         <Route path='/jobs/new' element={<Fresh><JobForm /></Fresh>} />
         <Route path='/jobs/:id' element={<JobDetail />} />
         <Route path='/jobs/:id/edit' element={<Fresh><JobForm /></Fresh>} />
+        <Route path='/jobs/:id/invoice' element={<Invoice />} />
 
         <Route path='/customers' element={<Customers />} />
         <Route path='/customers/new' element={<Fresh><CustomerForm /></Fresh>} />
@@ -45,6 +48,7 @@ function App() {
 
         <Route path='/analytics' element={<Analytics />} />
         <Route path='/services' element={<Services />} />
+        <Route path='/settings' element={<Settings />} />
         <Route path='*' element={<Navigate to='/jobs' replace />} />
       </Route>
     </Routes>

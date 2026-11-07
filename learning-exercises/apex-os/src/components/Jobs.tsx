@@ -1,8 +1,10 @@
 import { useState } from "react"
-import { Link, useNavigate } from "react-router"
+import { Link, useNavigate, useSearchParams } from "react-router"
 import { useData } from "../data/useData"
 import type { Job } from "../types/job"
 import { formatDate, formatMoney, todayISO } from "../utils/date"
+import { isOpen, itemsLabel } from "../utils/jobs"
+import WeekView from "./WeekView"
 import { EmptyState, Flash, PageHeader, SearchBox, StatusBadge } from "./ui"
 
 type View = "open" | "finished" | "all"
@@ -13,11 +15,12 @@ const VIEWS: { id: View, label: string }[] = [
     { id: "all", label: "All" },
 ]
 
-const isOpen = (job: Job) => job.status === "booked" || job.status === "in-progress"
 
 function Jobs() {
-    const { jobs, customers, vehicles, services, loadDemoData } = useData()
+    const { jobs, customers, vehicles, loadDemoData } = useData()
     const navigate = useNavigate()
+    const [searchParams, setSearchParams] = useSearchParams()
+    const layout = searchParams.get("view") === "week" ? "week" : "list"
     const [view, setView] = useState<View>("open")
     const [search, setSearch] = useState("")
 
@@ -26,7 +29,7 @@ function Jobs() {
 
     const customerName = (job: Job) => customers.find((c) => c.id === job.customerId)?.name ?? "Unknown customer"
     const vehicleFor = (job: Job) => vehicles.find((v) => v.id === job.vehicleId)
-    const serviceName = (job: Job) => services.find((s) => s.id === job.serviceId)?.name ?? "Service removed"
+    const serviceName = (job: Job) => itemsLabel(job.items)
 
     const visibleJobs = jobs
         .filter((job) => view === "all" || (view === "open" ? isOpen(job) : !isOpen(job)))
@@ -68,8 +71,14 @@ function Jobs() {
                 title="Jobs"
                 subtitle={`${todayCount} today · ${openCount} open`}
             >
-                <SearchBox value={search} onChange={setSearch} placeholder="Search customer, rego or service" />
+                {layout === "list" && <SearchBox value={search} onChange={setSearch} placeholder="Search customer, rego or service" />}
+                <div className="switch" role="group" aria-label="Show as">
+                    <button aria-pressed={layout === "list"} onClick={() => setSearchParams({}, { replace: true })}>List</button>
+                    <button aria-pressed={layout === "week"} onClick={() => setSearchParams({ view: "week" }, { replace: true })}>Week</button>
+                </div>
             </PageHeader>
+
+            {layout === "week" ? <WeekView /> :
 
             <div className="section">
                 <div className="tabs" role="tablist" aria-label="Show jobs">
@@ -94,7 +103,7 @@ function Jobs() {
                                     <th>When</th>
                                     <th>Customer</th>
                                     <th>Vehicle</th>
-                                    <th>Service</th>
+                                    <th>Services</th>
                                     <th>Status</th>
                                     <th className="num">Total</th>
                                 </tr>
@@ -114,7 +123,7 @@ function Jobs() {
                                             <td data-label="Vehicle">
                                                 {vehicle ? <span><span className="plate">{vehicle.rego}</span> <span className="cell-sub">{vehicle.make} {vehicle.model}</span></span> : "Unknown vehicle"}
                                             </td>
-                                            <td data-label="Service">{serviceName(job)}</td>
+                                            <td data-label="Services">{serviceName(job)}</td>
                                             <td data-label="Status"><StatusBadge status={job.status} /></td>
                                             <td data-label="Total" className="num">{formatMoney(job.price)}</td>
                                         </tr>
@@ -125,6 +134,7 @@ function Jobs() {
                     }
                 </div>
             </div>
+            }
         </div>
     )
 }

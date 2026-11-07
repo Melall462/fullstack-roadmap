@@ -25,6 +25,7 @@ export function createDemoData() {
         id: index + 1,
         name,
         email: `${name.toLowerCase().replace(/[^a-z]+/g, ".")}@example.com`,
+        phone: `02${1 + (index % 7)} 555 0${String(100 + index * 7).padStart(3, "0")}`,
     }))
 
     const models = [
@@ -71,6 +72,10 @@ export function createDemoData() {
             const vehicle = pick(vehicles)
             const serviceId = pick(serviceWeights)
             const service = services.find((s) => s.id === serviceId) as Service
+            const items = [{ serviceId: service.id, name: service.name, price: service.price, durationMins: service.durationMins }]
+            // Some washes come with an interior detail as well.
+            const extra = services[1] as Service
+            if (service.id === 1 && random() < 0.4) items.push({ serviceId: extra.id, name: extra.name, price: extra.price, durationMins: extra.durationMins })
             let status: JobStatus = "booked"
             if (offset < -3) status = random() < 0.95 ? "paid" : "done"
             else if (offset < 0) status = random() < 0.5 ? "paid" : "done"
@@ -80,12 +85,14 @@ export function createDemoData() {
                 id: jobs.length + 1,
                 customerId: vehicle.customerId as number,
                 vehicleId: vehicle.id,
-                serviceId: service.id,
+                items,
                 date,
                 time: times[(n * 3 + Math.floor(random() * 4)) % times.length] as string,
-                price: service.price,
+                price: items.reduce((sum, i) => sum + i.price, 0),
                 status,
                 notes: "",
+                invoiceNumber: null,
+                invoiceDate: "",
             })
         }
     }

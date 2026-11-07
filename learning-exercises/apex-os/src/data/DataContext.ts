@@ -3,18 +3,22 @@ import type { Customer } from "../types/customer"
 import type { Vehicle } from "../types/vehicle"
 import type { Service } from "../types/service"
 import type { Job, JobStatus } from "../types/job"
+import type { Settings } from "../types/settings"
+
+// The last thing deleted, so it can be brought back with Undo.
+export type UndoNotice = { id: number, message: string }
 
 export type DataContextValue = {
     customers: Customer[],
     vehicles: Vehicle[],
     services: Service[],
     jobs: Job[],
-    businessName: string,
+    settings: Settings,
 
-    setBusinessName: (name: string) => void,
+    updateSettings: (changes: Partial<Settings>) => void,
     loadDemoData: () => void,
 
-    addCustomer: (name: string, email: string) => number,
+    addCustomer: (customer: Omit<Customer, "id">) => number,
     updateCustomer: (customer: Customer) => void,
     deleteCustomer: (customerId: number) => void,
 
@@ -26,10 +30,15 @@ export type DataContextValue = {
     updateService: (service: Service) => void,
     deleteService: (serviceId: number) => void,
 
-    addJob: (job: Omit<Job, "id">) => number,
+    addJob: (job: Omit<Job, "id" | "invoiceNumber" | "invoiceDate">) => number,
     updateJob: (job: Job) => void,
     deleteJob: (jobId: number) => void,
     setJobStatus: (jobId: number, status: JobStatus) => void,
+    createInvoice: (jobId: number) => void,
+
+    undo: UndoNotice | null,
+    undoDelete: () => void,
+    dismissUndo: () => void,
 }
 
 export const DataContext = createContext<DataContextValue | null>(null)

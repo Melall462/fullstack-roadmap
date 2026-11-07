@@ -14,7 +14,8 @@ function CustomerForm() {
 
     const [name, setName] = useState(existing?.name ?? "")
     const [email, setEmail] = useState(existing?.email ?? "")
-    const [errors, setErrors] = useState<{ name?: string, email?: string }>({})
+    const [phone, setPhone] = useState(existing?.phone ?? "")
+    const [errors, setErrors] = useState<{ name?: string, email?: string, phone?: string }>({})
 
     if (isEdit && !existing) {
         return <div className="card"><EmptyState title="Customer not found" /></div>
@@ -22,17 +23,20 @@ function CustomerForm() {
 
     function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
         event.preventDefault()
-        const next: { name?: string, email?: string } = {}
+        const next: { name?: string, email?: string, phone?: string } = {}
         if (name.trim() === "") next.name = "Enter the customer's name."
-        if (!/^\S+@\S+\.\S+$/.test(email.trim())) next.email = "Enter an email like sam@example.com."
+        if (email.trim() === "" && phone.trim() === "") next.phone = "Enter a phone number or an email."
+        else if (email.trim() !== "" && !/^\S+@\S+\.\S+$/.test(email.trim())) next.email = "Enter an email like sam@example.com."
+        else if (phone.trim() !== "" && !/^[+\d][\d\s()-]{5,}$/.test(phone.trim())) next.phone = "Enter a phone number like 021 555 0123."
         setErrors(next)
-        if (next.name || next.email) return
+        if (next.name || next.email || next.phone) return
 
+        const details = { name: name.trim(), email: email.trim(), phone: phone.trim() }
         if (existing) {
-            updateCustomer({ ...existing, name: name.trim(), email: email.trim() })
+            updateCustomer({ ...existing, ...details })
             navigate(`/customers/${existing.id}`, { state: { flash: "Customer saved." } })
         } else {
-            const id = addCustomer(name.trim(), email.trim())
+            const id = addCustomer(details)
             navigate(`/vehicles/new?customer=${id}`, { state: { flash: "Customer added." } })
         }
     }
@@ -52,6 +56,14 @@ function CustomerForm() {
                     <input autoFocus value={name} placeholder="Sam Wilson" aria-invalid={errors.name ? true : undefined}
                         onChange={(event) => setName(event.target.value)} />
                     {errors.name && <span className="field-error">{errors.name}</span>}
+                </label>
+                <label className="field">
+                    <span>Phone</span>
+                    <input type="tel" value={phone} placeholder="021 555 0123" autoComplete="tel" aria-invalid={errors.phone ? true : undefined}
+                        onChange={(event) => setPhone(event.target.value)} />
+                    {errors.phone ?
+                        <span className="field-error">{errors.phone}</span> :
+                        <span className="hint">A phone number, an email, or both.</span>}
                 </label>
                 <label className="field">
                     <span>Email</span>

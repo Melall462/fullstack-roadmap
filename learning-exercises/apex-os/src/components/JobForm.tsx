@@ -2,12 +2,17 @@ import { useState } from "react"
 import type React from "react"
 import { Link, useNavigate, useParams, useSearchParams } from "react-router"
 import { useData } from "../data/useData"
-import type { JobStatus } from "../types/job"
+import type { JobItem, JobStatus } from "../types/job"
 import { JOB_STATUSES } from "../types/job"
 import { formatMoney, todayISO } from "../utils/date"
+import { clashesWith, durationOf, endTime, formatDuration, itemsLabel } from "../utils/jobs"
 import { EmptyState, Flash, PageHeader, STATUS_LABELS, Steps } from "./ui"
+import Icon from "./Icon"
 
 type Errors = Partial<Record<"customer" | "vehicle" | "service" | "when" | "price", string>>
+
+// A service ticked on the form; price is kept as text while it's being typed.
+type Line = Omit<JobItem, "price"> & { price: string }
 
 // Create a job (step 3 of the flow) or edit an existing one.
 // The customer and vehicle carry forward from the earlier steps via ?customer= / ?vehicle=.
@@ -31,10 +36,9 @@ function JobForm() {
     const [vehicleId, setVehicleId] = useState(existing ? String(existing.vehicleId) : presetVehicle ? String(presetVehicle.id) : onlyVehicle(presetCustomer?.id))
     const [pickCustomer, setPickCustomer] = useState(!existing && !presetCustomer)
     const [pickVehicle, setPickVehicle] = useState(!existing && !presetVehicle && onlyVehicle(presetCustomer?.id) === "")
-    const [serviceId, setServiceId] = useState(existing ? String(existing.serviceId) : "")
+    const [lines, setLines] = useState<Line[]>(existing ? existing.items.map((i) => ({ ...i, price: String(i.price) })) : [])
     const [date, setDate] = useState(existing?.date ?? todayISO())
     const [time, setTime] = useState(existing?.time ?? "09:00")
-    const [price, setPrice] = useState(existing ? String(existing.price) : "")
     const [status, setStatus] = useState<JobStatus>(existing?.status ?? "booked")
     const [notes, setNotes] = useState(existing?.notes ?? "")
     const [errors, setErrors] = useState<Errors>({})
@@ -54,36 +58,53 @@ function JobForm() {
         setPickVehicle(only === "")
     }
 
-    function chooseService(value: string) {
-        setServiceId(value)
-        const service = services.find((s) => String(s.id) === value)
-        if (service) setPrice(String(service.price))
+    // Every service you can tick: the current list plus any old ones already on this job.
+    const options: Omit<JobItem, "price">[] = [
+        ...services.map((s) => ({ serviceId: s.id, name: s.name, durationMins: s.durationMins })),
+        ...lines.filter((l) => !services.some((s) => s.id === l.serviceId)),
+    ]
+
+    function toggleService(serviceId: number) {
+        const ticked = lines.some((l) => l.serviceId === serviceId)
+        if (ticked) {
+            setLines(lines.filter((l) => l.serviceId !== serviceId))
+            return
+        }
+        const service = services.find((s) => s.id === serviceId)
+        if (service) setLines([...lines, { serviceId, name: service.name, price: String(service.price), durationMins: service.durationMins }])
     }
+
+    function setLinePrice(serviceId: number, value: string) {
+        setLines(lines.map((l) => l.serviceId === serviceId ? { ...l, price: value } : l))
+    }
+
+    const items: JobItem[] = lines.map((l) => ({ ...l, price: Number(l.price) || 0 }))
+    const total = items.reduce((sum, i) => sum + i.price, 0)
+    const clashes = date && time && lines.length > 0 ? clashesWith({ id: existing?.id ?? -1, date, time, items }, jobs) : []
 
     function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
         event.preventDefault()
-        const amount = Number(price)
         const next: Errors = {}
         if (!customer) next.customer = "Choose a customer."
         if (!vehicle) next.vehicle = "Choose a vehicle."
-        if (!serviceId) next.service = "Choose a service."
+        if (lines.length === 0) next.service = "Tick at least one service."
         if (!date || !time) next.when = "Choose a date and time."
-        if (price === "" || !Number.isFinite(amount) || amount < 0) next.price = "Enter a price, like 120."
+        if (lines.some((l) => l.price === "" || !Number.isFinite(Number(l.price)) || Number(l.price) < 0)) next.price = "Enter a price for each service, like 120."
         setErrors(next)
         if (Object.keys(next).length > 0 || !customer || !vehicle) return
 
         const details = {
             customerId: customer.id,
             vehicleId: vehicle.id,
-            serviceId: Number(serviceId),
+            items,
             date,
             time,
-            price: amount,
+            price: total,
             status,
             notes: notes.trim(),
         }
         if (existing) {
-            updateJob({ ...details, id: existing.id })
+            updateJob({ ...existing, ...details })
             navigate(`/jobs/${existing.id}`, { state: { flash: "Job saved." } })
         } else {
             const id = addJob(details)
@@ -154,17 +175,45 @@ function JobForm() {
                         </label>
                 )}
 
-                <label className="field">
-                    <span>Service</span>
-                    {services.length === 0 ?
+                <fieldset className="field">
+                    <legend>Services</legend>
+                    {options.length === 0 ?
                         <div className="notice">No services yet. <Link to="/services">Add a service</Link> with its price first.</div> :
-                        <select value={serviceId} aria-invalid={errors.service ? true : undefined} onChange={(event) => chooseService(event.target.value)}>
-                            <option value="">Choose a service</option>
-                            {services.map((s) => <option key={s.id} value={s.id}>{s.name} · {formatMoney(s.price)}</option>)}
-                        </select>
+                        <div className="service-list" aria-invalid={errors.service ? true : undefined}>
+                            {options.map((option) => {
+                                const line = lines.find((l) => l.serviceId === option.serviceId)
+                                const service = services.find((s) => s.id === option.serviceId)
+                                return (
+                                    <div key={option.serviceId} className={line ? "service-option picked-option" : "service-option"}>
+                                        <label className="check">
+                                            <input type="checkbox" checked={line !== undefined} disabled={!service && !line}
+                                                onChange={() => line && !service ? setLines(lines.filter((l) => l !== line)) : toggleService(option.serviceId)} />
+                                            <span>
+                                                {option.name}
+                                                <span className="secondary small"> · {formatDuration(option.durationMins)}</span>
+                                            </span>
+                                        </label>
+                                        {line ?
+                                            <span className="line-price">
+                                                <span className="secondary">$</span>
+                                                <input inputMode="decimal" className="tnum" value={line.price} aria-label={`Price for ${option.name}`}
+                                                    onChange={(event) => setLinePrice(option.serviceId, event.target.value)} />
+                                            </span> :
+                                            <span className="secondary tnum">{service ? formatMoney(service.price) : ""}</span>}
+                                    </div>
+                                )
+                            })}
+                        </div>
                     }
                     {errors.service && <span className="field-error">{errors.service}</span>}
-                </label>
+                    {errors.price && <span className="field-error">{errors.price}</span>}
+                    {lines.length > 0 &&
+                        <div className="job-total">
+                            <span className="secondary">{itemsLabel(items)} · {formatDuration(durationOf(items))}</span>
+                            <strong className="tnum">{formatMoney(total)}</strong>
+                        </div>
+                    }
+                </fieldset>
 
                 <div className="form-row">
                     <label className="field">
@@ -172,16 +221,20 @@ function JobForm() {
                         <input type="date" className="tnum" value={date} onChange={(event) => setDate(event.target.value)} />
                     </label>
                     <label className="field">
-                        <span>Time</span>
+                        <span>Start time</span>
                         <input type="time" className="tnum" value={time} onChange={(event) => setTime(event.target.value)} />
                     </label>
-                    <label className="field">
-                        <span>Price ($)</span>
-                        <input inputMode="decimal" className="tnum" value={price} placeholder="0.00" aria-invalid={errors.price ? true : undefined}
-                            onChange={(event) => setPrice(event.target.value)} />
-                    </label>
                 </div>
-                {(errors.when || errors.price) && <span className="field-error">{errors.when ?? errors.price}</span>}
+                {errors.when && <span className="field-error">{errors.when}</span>}
+                {clashes.length > 0 &&
+                    <div className="warning" role="status">
+                        <Icon name="alert" size={16} />
+                        <span>
+                            This overlaps with {clashes.map((c) => `${customers.find((x) => x.id === c.customerId)?.name ?? "another job"} (${c.time}–${endTime(c)})`).join(", ")}.
+                            You can still save it.
+                        </span>
+                    </div>
+                }
 
                 {existing &&
                     <label className="field">

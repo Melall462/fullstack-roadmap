@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router"
 import { useData } from "../data/useData"
 import type { Job } from "../types/job"
 import { addDays, daysSince, formatDate, formatMoney, toISODate, todayISO } from "../utils/date"
+import { reminderText } from "../utils/jobs"
 import RevenueChart, { type Bucket } from "./RevenueChart"
 import { EmptyState, PageHeader } from "./ui"
 
@@ -90,7 +91,7 @@ function Delta({ current, previous, label }: { current: number, previous: number
 }
 
 function Analytics() {
-    const { jobs, vehicles, customers } = useData()
+    const { jobs, vehicles, customers, settings } = useData()
     const navigate = useNavigate()
     const [range, setRange] = useState<Range>("month")
 
@@ -122,6 +123,25 @@ function Analytics() {
         .sort((a, b) => (b.age ?? Infinity) - (a.age ?? Infinity))
 
     const ownerName = (customerId: number | null) => customers.find((c) => c.id === customerId)?.name
+
+    // A link that opens an email (or a text, if there's no email) with the reminder written for you.
+    function reminderLink(vehicleId: number): string | null {
+        const vehicle = vehicles.find((v) => v.id === vehicleId)
+        const owner = customers.find((c) => c.id === vehicle?.customerId)
+        if (!vehicle || !owner || (!owner.email && !owner.phone)) return null
+        const body = reminderText(settings.reminderMessage, {
+            name: owner.name,
+            vehicle: `${vehicle.make} ${vehicle.model}`,
+            rego: vehicle.rego,
+            daysSince: vehicle.lastDetail ? daysSince(vehicle.lastDetail) : null,
+            business: settings.businessName,
+        })
+        if (owner.email) {
+            const subject = `Time for a detail on your ${vehicle.make} ${vehicle.model}?`
+            return `mailto:${owner.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
+        }
+        return `sms:${owner.phone.replace(/\s/g, "")}?body=${encodeURIComponent(body)}`
+    }
 
     return (
         <div>
@@ -180,7 +200,7 @@ function Analytics() {
             <section className="section">
                 <div>
                     <h2>Vehicles due for a detail</h2>
-                    <p className="secondary small">Not detailed in the last {DUE_AFTER_DAYS} days. Worth a call.</p>
+                    <p className="secondary small">Not detailed in the last {DUE_AFTER_DAYS} days. "Send reminder" opens an email or text with your message from Settings.</p>
                 </div>
                 <div className="card">
                     {due.length === 0 ?
@@ -195,9 +215,9 @@ function Analytics() {
                                         <td data-label="Owner">{ownerName(vehicle.customerId) ?? <span className="cell-sub">No owner</span>}</td>
                                         <td data-label="Last detail" className="cell-sub tnum">{vehicle.lastDetail ? formatDate(vehicle.lastDetail) : "Never"}</td>
                                         <td data-label="Days since" className="num">{age ?? "Never"}</td>
-                                        <td className="num">
-                                            {vehicle.customerId !== null &&
-                                                <Link className="small" to={`/jobs/new?vehicle=${vehicle.id}`} onClick={(e) => e.stopPropagation()}>Book job</Link>}
+                                        <td className="num row-links" onClick={(e) => e.stopPropagation()}>
+                                            {reminderLink(vehicle.id) && <a className="small" href={reminderLink(vehicle.id) ?? undefined}>Send reminder</a>}
+                                            {vehicle.customerId !== null && <Link className="small" to={`/jobs/new?vehicle=${vehicle.id}`}>Book job</Link>}
                                         </td>
                                     </tr>
                                 ))}

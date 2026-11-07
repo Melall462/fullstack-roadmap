@@ -1,10 +1,11 @@
 import { Link, useNavigate, useParams } from "react-router"
 import { useData } from "../data/useData"
 import { formatDate, formatMoney } from "../utils/date"
+import { itemsLabel } from "../utils/jobs"
 import { EmptyState, Flash, PageHeader, StatusBadge } from "./ui"
 
 function VehicleDetail() {
-    const { vehicles, customers, jobs, services, deleteVehicle } = useData()
+    const { vehicles, customers, jobs, deleteVehicle } = useData()
     const navigate = useNavigate()
     const params = useParams()
     const vehicle = vehicles.find((v) => v.id === Number(params["id"]))
@@ -20,10 +21,8 @@ function VehicleDetail() {
 
     function handleDelete() {
         if (!vehicle) return
-        const detail = history.length > 0 ? ` This also deletes ${history.length} job(s).` : ""
-        if (!window.confirm(`Delete ${vehicle.rego}?${detail}`)) return
         deleteVehicle(vehicle.id)
-        navigate(owner ? `/customers/${owner.id}` : "/vehicles", { state: { flash: "Vehicle deleted." } })
+        navigate(owner ? `/customers/${owner.id}` : "/vehicles")
     }
 
     return (
@@ -53,12 +52,12 @@ function VehicleDetail() {
                     {history.length === 0 ?
                         <EmptyState title="No jobs for this vehicle yet." /> :
                         <table className="table">
-                            <thead><tr><th>When</th><th>Service</th><th>Status</th><th className="num">Total</th></tr></thead>
+                            <thead><tr><th>When</th><th>Services</th><th>Status</th><th className="num">Total</th></tr></thead>
                             <tbody>
                                 {history.map((job) => (
                                     <tr key={job.id} className="clickable" onClick={() => navigate(`/jobs/${job.id}`)}>
                                         <td className="lead"><Link className="main tnum" to={`/jobs/${job.id}`} onClick={(e) => e.stopPropagation()}>{formatDate(job.date)}</Link></td>
-                                        <td data-label="Service">{services.find((s) => s.id === job.serviceId)?.name ?? "Service removed"}</td>
+                                        <td data-label="Services">{itemsLabel(job.items)}</td>
                                         <td data-label="Status"><StatusBadge status={job.status} /></td>
                                         <td data-label="Total" className="num">{formatMoney(job.price)}</td>
                                     </tr>
@@ -70,7 +69,8 @@ function VehicleDetail() {
             </section>
 
             <section className="section">
-                <div><button className="btn-link danger" onClick={handleDelete}>Delete vehicle</button></div>
+                <div><button className="btn-link danger" onClick={handleDelete}>Delete vehicle</button>
+                    {history.length > 0 && <span className="secondary small"> (also deletes {history.length} job{history.length === 1 ? "" : "s"})</span>}</div>
             </section>
         </div>
     )

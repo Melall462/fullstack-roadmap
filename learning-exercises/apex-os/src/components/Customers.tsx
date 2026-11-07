@@ -13,27 +13,28 @@ function Customers() {
     const today = todayISO()
 
     const filtered = customers
-        .filter((c) => c.name.toLowerCase().includes(term) || c.email.toLowerCase().includes(term))
+        .filter((c) => `${c.name} ${c.email} ${c.phone}`.toLowerCase().includes(term) ||
+            (term.replace(/\D/g, "") !== "" && c.phone.replace(/\D/g, "").includes(term.replace(/\D/g, ""))))
         .sort((a, b) => a.name.localeCompare(b.name))
 
     return (
         <div>
             <Flash />
             <PageHeader title="Customers" subtitle={`${customers.length} customer${customers.length === 1 ? "" : "s"}`}>
-                <SearchBox value={search} onChange={setSearch} placeholder="Search name or email" />
+                <SearchBox value={search} onChange={setSearch} placeholder="Search name, phone or email" />
                 <Link className="btn btn-primary" to="/customers/new">Add customer</Link>
             </PageHeader>
 
             <div className="card">
                 {filtered.length === 0 ?
                     <EmptyState title={term ? "No customers match that search" : "No customers yet"}>
-                        {term ? "Try another name or email." : "Add your first customer to get started."}
+                        {term ? "Try another name, phone or email." : "Add your first customer to get started."}
                     </EmptyState> :
                     <table className="table">
                         <thead>
                             <tr>
                                 <th>Name</th>
-                                <th>Email</th>
+                                <th>Contact</th>
                                 <th>Vehicles</th>
                                 <th className="num">Jobs</th>
                                 <th>Last job</th>
@@ -49,7 +50,10 @@ function Customers() {
                                         <td className="lead">
                                             <Link className="main" to={`/customers/${customer.id}`} onClick={(event) => event.stopPropagation()}>{customer.name}</Link>
                                         </td>
-                                        <td data-label="Email" className="cell-sub">{customer.email}</td>
+                                        <td data-label="Contact">
+                                            <div className="tnum">{customer.phone}</div>
+                                            <div className="cell-sub">{customer.email}</div>
+                                        </td>
                                         <td data-label="Vehicles">
                                             {owned.length === 0 ? <span className="cell-sub">None</span> :
                                                 owned.map((v) => <span key={v.id} className="plate" style={{ marginRight: 4 }}>{v.rego}</span>)}

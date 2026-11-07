@@ -1,10 +1,11 @@
 import { Link, useNavigate, useParams } from "react-router"
 import { useData } from "../data/useData"
 import { formatDate, formatMoney } from "../utils/date"
+import { itemsLabel } from "../utils/jobs"
 import { EmptyState, Flash, PageHeader, StatusBadge } from "./ui"
 
 function CustomerDetail() {
-    const { customers, vehicles, jobs, services, deleteCustomer } = useData()
+    const { customers, vehicles, jobs, deleteCustomer } = useData()
     const navigate = useNavigate()
     const params = useParams()
     const customer = customers.find((c) => c.id === Number(params["id"]))
@@ -25,18 +26,19 @@ function CustomerDetail() {
 
     function handleDelete() {
         if (!customer) return
-        const detail = owned.length + customerJobs.length > 0
-            ? ` This also deletes ${owned.length} vehicle(s) and ${customerJobs.length} job(s).`
-            : ""
-        if (!window.confirm(`Delete ${customer.name}?${detail}`)) return
         deleteCustomer(customer.id)
-        navigate("/customers", { state: { flash: "Customer deleted." } })
+        navigate("/customers")
     }
+
+    const contact = [
+        customer.phone && <a key="phone" className="tnum" href={`tel:${customer.phone.replace(/\s/g, "")}`}>{customer.phone}</a>,
+        customer.email && <a key="email" href={`mailto:${customer.email}`}>{customer.email}</a>,
+    ].filter(Boolean)
 
     return (
         <div>
             <Flash />
-            <PageHeader title={customer.name} subtitle={<a href={`mailto:${customer.email}`}>{customer.email}</a>} back={{ to: "/customers", label: "Customers" }}>
+            <PageHeader title={customer.name} subtitle={<span className="contact">{contact}</span>} back={{ to: "/customers", label: "Customers" }}>
                 <Link className="btn" to={`/customers/${customer.id}/edit`}>Edit</Link>
                 {owned.length > 0 && <Link className="btn btn-primary" to={`/jobs/new?customer=${customer.id}`}>New job</Link>}
             </PageHeader>
@@ -72,13 +74,13 @@ function CustomerDetail() {
                     {customerJobs.length === 0 ?
                         <EmptyState title={owned.length === 0 ? "Add a vehicle first, then book a job." : `No jobs yet for ${firstName}.`} /> :
                         <table className="table">
-                            <thead><tr><th>When</th><th>Vehicle</th><th>Service</th><th>Status</th><th className="num">Total</th></tr></thead>
+                            <thead><tr><th>When</th><th>Vehicle</th><th>Services</th><th>Status</th><th className="num">Total</th></tr></thead>
                             <tbody>
                                 {customerJobs.map((job) => (
                                     <tr key={job.id} className="clickable" onClick={() => navigate(`/jobs/${job.id}`)}>
                                         <td className="lead"><Link className="main tnum" to={`/jobs/${job.id}`} onClick={(e) => e.stopPropagation()}>{formatDate(job.date)}</Link></td>
                                         <td data-label="Vehicle"><span className="plate">{vehicles.find((v) => v.id === job.vehicleId)?.rego ?? "?"}</span></td>
-                                        <td data-label="Service">{services.find((s) => s.id === job.serviceId)?.name ?? "Service removed"}</td>
+                                        <td data-label="Services">{itemsLabel(job.items)}</td>
                                         <td data-label="Status"><StatusBadge status={job.status} /></td>
                                         <td data-label="Total" className="num">{formatMoney(job.price)}</td>
                                     </tr>
@@ -90,7 +92,11 @@ function CustomerDetail() {
             </section>
 
             <section className="section">
-                <div><button className="btn-link danger" onClick={handleDelete}>Delete customer</button></div>
+                <div>
+                    <button className="btn-link danger" onClick={handleDelete}>Delete customer</button>
+                    {(owned.length > 0 || customerJobs.length > 0) &&
+                        <span className="secondary small"> (also deletes {owned.length} vehicle{owned.length === 1 ? "" : "s"} and {customerJobs.length} job{customerJobs.length === 1 ? "" : "s"})</span>}
+                </div>
             </section>
         </div>
     )

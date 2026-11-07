@@ -1,6 +1,7 @@
-import type { ReactNode } from "react"
+import { useEffect, type ReactNode } from "react"
 import { Link, useLocation } from "react-router"
 import type { JobStatus } from "../types/job"
+import { useData } from "../data/useData"
 import Icon from "./Icon"
 
 export const STATUS_LABELS: Record<JobStatus, string> = {
@@ -83,5 +84,27 @@ export function Steps({ current }: { current: 1 | 2 | 3 }) {
                 )
             })}
         </ol>
+    )
+}
+
+// "Customer deleted. Undo" — shown at the bottom of the screen for a few seconds after a delete.
+export function UndoToast() {
+    const { undo, undoDelete, dismissUndo } = useData()
+
+    useEffect(() => {
+        if (!undo) return
+        const timer = window.setTimeout(dismissUndo, 8000)
+        return () => window.clearTimeout(timer)
+        // Restart the timer for each new delete only.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [undo?.id])
+
+    if (!undo) return null
+    return (
+        <div className="toast" role="status">
+            <span>{undo.message}</span>
+            <button className="btn-link" onClick={undoDelete}>Undo</button>
+            <button className="toast-close" aria-label="Dismiss" onClick={dismissUndo}>×</button>
+        </div>
     )
 }

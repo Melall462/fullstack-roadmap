@@ -54,16 +54,12 @@ function Services() {
         setMessage("")
     }
 
+    // Jobs keep their own copy of each service's name and price, so deleting
+    // a service never changes past jobs or invoices.
     function handleDelete(service: Service) {
-        const used = jobs.filter((j) => j.serviceId === service.id).length
-        if (used > 0) {
-            setMessage("")
-            setError(`${service.name} is used by ${used} job(s), so it can't be deleted.`)
-            return
-        }
         deleteService(service.id)
         if (editingId === service.id) reset()
-        setMessage("Service deleted.")
+        setMessage("")
     }
 
     return (
@@ -109,7 +105,7 @@ function Services() {
                                         <td className="lead main">{service.name}</td>
                                         <td data-label="Price" className="num">{formatMoney(service.price)}</td>
                                         <td data-label="Time" className="num">{formatDuration(service.durationMins)}</td>
-                                        <td data-label="Jobs" className="num">{jobs.filter((j) => j.serviceId === service.id).length}</td>
+                                        <td data-label="Jobs" className="num">{jobs.filter((j) => j.items.some((i) => i.serviceId === service.id)).length}</td>
                                         <td className="num">
                                             <button className="btn btn-ghost" onClick={() => startEdit(service)}>Edit</button>
                                             <button className="btn btn-ghost btn-danger" onClick={() => handleDelete(service)}>Delete</button>

@@ -65,11 +65,24 @@
 }
 .narrow { max-width: 640px; }
 
-/* ===== Bottom tab bar (mobile) ===== */
-.tabbar { display: none; }
+/* ===== Top bar & bottom tab bar (mobile) ===== */
+.topbar, .tabbar { display: none; }
 
 @media (max-width: 720px) {
     .sidebar { display: none; }
+    .topbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 12px var(--s3);
+        background: var(--surface);
+        border-bottom: 1px solid var(--border);
+    }
+    .topbar .brand { padding: 0; }
+    .topbar-links { display: flex; gap: var(--s1); }
+    .topbar-links a { display: grid; place-items: center; width: 40px; height: 40px; border-radius: var(--radius-sm); color: var(--text-2); }
+    .topbar-links a.active { color: var(--accent); background: var(--accent-soft); }
+    .app-layout { flex-direction: column; }
     .main-content { padding: var(--s4) var(--s3) 96px var(--s3); }
 
     .tabbar {
