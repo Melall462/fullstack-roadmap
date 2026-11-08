@@ -13,7 +13,7 @@ const navItems: { to: string, label: string, icon: IconName }[] = [
 const linkClass = ({ isActive }: { isActive: boolean }) => isActive ? "nav-link active" : "nav-link"
 
 function Layout() {
-    const { settings } = useData()
+    const { settings, saveState, saveError, retrySave } = useData()
     const { pathname } = useLocation()
     const isNewJob = pathname === "/jobs/new"
 
@@ -39,6 +39,9 @@ function Layout() {
                     <NavLink to="/services" className={linkClass}><Icon name="services" /> Services</NavLink>
                     <NavLink to="/settings" className={linkClass}><Icon name="settings" /> Settings</NavLink>
                     <div className="business-name">{settings.businessName}</div>
+                    <div className={`save-status ${saveState}`} role="status">
+                        {saveState === "saved" ? "All changes saved" : saveState === "saving" ? "Saving…" : "Not saved"}
+                    </div>
                 </div>
             </aside>
 
@@ -69,6 +72,13 @@ function Layout() {
                     <Icon name="plus" /> New job
                 </NavLink>
             </nav>
+
+            {saveState === "error" &&
+                <div className="save-error" role="alert">
+                    <span><strong>Couldn't save your last change.</strong> <span className="small">{saveError}</span></span>
+                    <button className="btn" onClick={retrySave}>Try again</button>
+                </div>
+            }
 
             <UndoToast />
         </div>

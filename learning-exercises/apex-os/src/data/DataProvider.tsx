@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState, type ReactNode } from "react"
+import { loadAll, saveChanges, type AllData, type ServerState } from "./db"
+import { supabase } from "../lib/supabase"
 import { DataContext, type DataContextValue, type UndoNotice } from "./DataContext"
-import { loadList, saveList } from "./storage"
+import { loadList } from "./storage"
 import { createDemoData } from "./demo"
-import { seedCustomers, seedJobs, seedServices, seedVehicles } from "./seed"
 import type { Customer } from "../types/customer"
 import type { Vehicle } from "../types/vehicle"
 import type { Service } from "../types/service"
@@ -68,31 +69,27 @@ function migrateJob(services: Service[]) {
     }
 }
 
-function loadSettings(): Settings {
+// Settings saved in this browser by the localStorage version of the app (null if none).
+function loadBrowserSettings(): Partial<Settings> | null {
     try {
         const saved = JSON.parse(localStorage.getItem("settings") ?? "null") as Partial<Settings> | null
         const legacyName = localStorage.getItem("businessName")
-        return {
-            ...defaultSettings,
-            ...(legacyName ? { businessName: legacyName } : {}),
-            ...(saved ?? {}),
-        }
+        if (!saved && !legacyName) return null
+        return { ...(legacyName ? { businessName: legacyName } : {}), ...(saved ?? {}) }
     } catch {
-        return defaultSettings
+        return null
     }
 }
 
-// Loads everything from localStorage and drops links that point at records
-// which no longer exist (e.g. data saved by an older version of the app).
-function loadInitialData() {
-    const hasSavedVehicles = localStorage.getItem("vehicles") !== null
-    const customers = loadList("customers", seedCustomers, migrateCustomer)
-    const services = loadList("services", seedServices)
-    // Sample jobs only make sense alongside the sample vehicles.
-    const savedJobs = loadList("jobs", hasSavedVehicles ? [] : seedJobs, migrateJob(services))
+// Reads data saved in this browser by the localStorage version of the app, so it can
+// be imported into your account. Drops links that point at records which no longer exist.
+function loadBrowserData() {
+    const customers = loadList<Customer>("customers", [], migrateCustomer)
+    const services = loadList<Service>("services", [])
+    const savedJobs = loadList<Job>("jobs", [], migrateJob(services))
 
     const customerIds = new Set(customers.map((c) => c.id))
-    const vehicles = loadList("vehicles", seedVehicles, migrateVehicle).map((v) =>
+    const vehicles = loadList<Vehicle>("vehicles", [], migrateVehicle).map((v) =>
         v.customerId !== null && !customerIds.has(v.customerId) ? { ...v, customerId: null } : v
     )
     const vehicleOwners = new Map(vehicles.map((v) => [v.id, v.customerId]))
@@ -109,21 +106,99 @@ function newId(): number {
 
 type Snapshot = { customers: Customer[], vehicles: Vehicle[], services: Service[], jobs: Job[] }
 
-function DataProvider({ children }: { children: ReactNode }) {
-    const [initial] = useState(loadInitialData)
-    const [customers, setCustomers] = useState<Customer[]>(initial.customers)
-    const [vehicles, setVehicles] = useState<Vehicle[]>(initial.vehicles)
-    const [services, setServices] = useState<Service[]>(initial.services)
-    const [jobs, setJobs] = useState<Job[]>(initial.jobs)
-    const [settings, setSettings] = useState<Settings>(loadSettings)
+type ProviderProps = { userId: string, userEmail: string, children: ReactNode }
+
+// Loads your data from Supabase, then hands it to DataStore.
+function DataProvider({ userId, userEmail, children }: ProviderProps) {
+    const [server, setServer] = useState<ServerState | null>(null)
+    const [error, setError] = useState("")
+    const [attempt, setAttempt] = useState(0)
+
+    useEffect(() => {
+        let cancelled = false
+        setError("")
+        loadAll()
+            .then((data) => { if (!cancelled) setServer(data) })
+            .catch((e: unknown) => { if (!cancelled) setError(e instanceof Error ? e.message : String(e)) })
+        return () => { cancelled = true }
+    }, [userId, attempt])
+
+    if (!server) {
+        return (
+            <div className="center-screen">
+                {error ?
+                    <div className="card card-pad form" style={{ maxWidth: 420 }}>
+                        <h2>Couldn't load your data</h2>
+                        <p className="secondary small">{error}</p>
+                        <div className="form-actions">
+                            <button className="btn btn-ghost" onClick={() => supabase.auth.signOut()}>Sign out</button>
+                            <button className="btn btn-primary" onClick={() => setAttempt(attempt + 1)}>Try again</button>
+                        </div>
+                    </div> :
+                    <p className="secondary">Loading your data…</p>}
+            </div>
+        )
+    }
+
+    return <DataStore userId={userId} userEmail={userEmail} server={server}>{children}</DataStore>
+}
+
+type SaveState = "saved" | "saving" | "error"
+
+function DataStore({ userId, userEmail, server, children }: ProviderProps & { server: ServerState }) {
+    const [customers, setCustomers] = useState<Customer[]>(server.customers)
+    const [vehicles, setVehicles] = useState<Vehicle[]>(server.vehicles)
+    const [services, setServices] = useState<Service[]>(server.services)
+    const [jobs, setJobs] = useState<Job[]>(server.jobs)
+    const [settings, setSettings] = useState<Settings>(server.settings ?? defaultSettings)
     const [undo, setUndo] = useState<UndoNotice | null>(null)
     const snapshot = useRef<Snapshot | null>(null)
 
-    useEffect(() => saveList("customers", customers), [customers])
-    useEffect(() => saveList("vehicles", vehicles), [vehicles])
-    useEffect(() => saveList("services", services), [services])
-    useEffect(() => saveList("jobs", jobs), [jobs])
-    useEffect(() => localStorage.setItem("settings", JSON.stringify(settings)), [settings])
+    // ---- Saving to Supabase ----
+    // "saved" is what the database had after the last successful save. Each change is
+    // compared with it and only the differences are sent (see db.ts). Saves run one
+    // at a time, in order. If one fails, "saved" isn't updated, so the next save
+    // (or Try again) sends everything that's still missing.
+    const saved = useRef<ServerState>(server)
+    const queue = useRef<Promise<void>>(Promise.resolve())
+    const latest = useRef<AllData>({ customers, vehicles, services, jobs, settings })
+    const pending = useRef(0)
+    const [saveState, setSaveState] = useState<SaveState>("saved")
+    const [saveError, setSaveError] = useState("")
+
+    function save() {
+        pending.current++
+        setSaveState("saving")
+        queue.current = queue.current.then(async () => {
+            const target = latest.current
+            try {
+                await saveChanges(userId, saved.current, target)
+                saved.current = target
+                pending.current--
+                if (pending.current === 0) setSaveState("saved")
+            } catch (e: unknown) {
+                pending.current--
+                setSaveError(e instanceof Error ? e.message : (e as { message?: string }).message ?? String(e))
+                setSaveState("error")
+            }
+        })
+    }
+
+    useEffect(() => {
+        latest.current = { customers, vehicles, services, jobs, settings }
+        save()
+        // save() only reads refs, so it doesn't need to be listed here.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [customers, vehicles, services, jobs, settings])
+
+    // Warn before closing the tab while changes are still being sent.
+    useEffect(() => {
+        function warn(event: BeforeUnloadEvent) {
+            if (pending.current > 0) event.preventDefault()
+        }
+        window.addEventListener("beforeunload", warn)
+        return () => window.removeEventListener("beforeunload", warn)
+    }, [])
 
     // A finished job updates its vehicle's "last detailed" date.
     function recordDetail(job: Pick<Job, "status" | "vehicleId" | "date">) {
@@ -168,6 +243,32 @@ function DataProvider({ children }: { children: ReactNode }) {
         services,
         jobs,
         settings,
+
+        userEmail,
+        signOut() {
+            void supabase.auth.signOut()
+        },
+        saveState,
+        saveError,
+        retrySave() {
+            save()
+        },
+        hasBrowserData: localStorage.getItem("customers") !== null,
+        importFromBrowser() {
+            // Adds the browser's records to your account (records already in your account are kept).
+            const browser = loadBrowserData()
+            const merge = <T extends { id: number }>(current: T[], incoming: T[]) => {
+                const ids = new Set(incoming.map((item) => item.id))
+                return [...current.filter((item) => !ids.has(item.id)), ...incoming]
+            }
+            setCustomers((previous) => merge(previous, browser.customers))
+            setServices((previous) => merge(previous, browser.services))
+            setVehicles((previous) => merge(previous, browser.vehicles))
+            setJobs((previous) => merge(previous, browser.jobs))
+            const browserSettings = loadBrowserSettings()
+            if (browserSettings) setSettings((previous) => ({ ...previous, ...browserSettings }))
+            return browser.customers.length + browser.vehicles.length + browser.jobs.length
+        },
 
         updateSettings(changes) {
             setSettings((previous) => ({ ...previous, ...changes }))

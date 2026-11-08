@@ -7,7 +7,8 @@ import { PageHeader } from "./ui"
 type Fields = Omit<SettingsType, "nextInvoiceNumber"> & { nextInvoiceNumber: string }
 
 function Settings() {
-    const { settings, updateSettings } = useData()
+    const { settings, updateSettings, userEmail, signOut, hasBrowserData, importFromBrowser } = useData()
+    const [imported, setImported] = useState<number | null>(null)
     const [fields, setFields] = useState<Fields>({ ...settings, nextInvoiceNumber: String(settings.nextInvoiceNumber) })
     const [error, setError] = useState("")
     const [saved, setSaved] = useState(false)
@@ -99,6 +100,24 @@ function Settings() {
                     <button className="btn btn-primary" type="submit">Save</button>
                 </div>
             </form>
+
+            {hasBrowserData &&
+                <section className="card card-pad form" style={{ marginTop: 24 }}>
+                    <h2>Data in this browser</h2>
+                    <p className="secondary small">
+                        This browser still has customers and jobs saved by the old version of ApexOS.
+                        Importing adds them to your account. Nothing in the browser is deleted.
+                    </p>
+                    {imported !== null && <div className="flash" role="status">Imported {imported} records.</div>}
+                    <div><button className="btn" type="button" onClick={() => setImported(importFromBrowser())}>Import from this browser</button></div>
+                </section>
+            }
+
+            <section className="card card-pad form" style={{ marginTop: 24 }}>
+                <h2>Account</h2>
+                <p>Signed in as <strong>{userEmail}</strong></p>
+                <div><button className="btn" type="button" onClick={signOut}>Sign out</button></div>
+            </section>
         </div>
     )
 }

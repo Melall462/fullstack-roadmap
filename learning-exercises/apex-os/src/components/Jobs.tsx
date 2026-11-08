@@ -30,7 +30,7 @@ const NEXT_STEP: Partial<Record<JobStatus, { status: JobStatus, label: string }>
 }
 
 function Jobs() {
-    const { jobs, customers, vehicles, loadDemoData, setJobStatus } = useData()
+    const { jobs, customers, vehicles, loadDemoData, setJobStatus, hasBrowserData, importFromBrowser } = useData()
     const navigate = useNavigate()
     const [searchParams, setSearchParams] = useSearchParams()
     const layout = searchParams.get("view") === "week" ? "week" : "list"
@@ -71,6 +71,7 @@ function Jobs() {
                         Add your first customer, then their vehicle, then book a job.
                         <div className="toolbar">
                             <Link className="btn btn-primary" to="/customers/new">Add customer</Link>
+                            {hasBrowserData && <button className="btn" onClick={importFromBrowser}>Import from this browser</button>}
                             <button className="btn btn-ghost" onClick={loadDemoData}>Load sample data</button>
                         </div>
                     </EmptyState>

@@ -15,6 +15,15 @@ export type DataContextValue = {
     jobs: Job[],
     settings: Settings,
 
+    // Account and saving
+    userEmail: string,
+    signOut: () => void,
+    saveState: "saved" | "saving" | "error",
+    saveError: string,
+    retrySave: () => void,
+    hasBrowserData: boolean,          // data from the old localStorage version is in this browser
+    importFromBrowser: () => number,  // returns how many records were imported
+
     updateSettings: (changes: Partial<Settings>) => void,
     loadDemoData: () => void,
 
