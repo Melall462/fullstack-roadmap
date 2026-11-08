@@ -11,6 +11,12 @@ export type JobItem = {
     durationMins: number
 }
 
+// "Every 2 weeks" is { every: 2, unit: "week" }.
+export type Repeat = {
+    every: number,
+    unit: "week" | "month"
+}
+
 export type Job = {
     id: number,
     customerId: number,
@@ -22,5 +28,7 @@ export type Job = {
     status: JobStatus,
     notes: string,
     invoiceNumber: number | null,
-    invoiceDate: string     // "" until an invoice is created
+    invoiceDate: string,    // "" until an invoice is created
+    repeat: Repeat | null,  // null for a one-off job
+    nextJobId: number | null // the job booked automatically after this one, once it's done
 }

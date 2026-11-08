@@ -2,14 +2,14 @@ import { useState } from "react"
 import type React from "react"
 import { Link, useNavigate, useParams, useSearchParams } from "react-router"
 import { useData } from "../data/useData"
-import type { JobItem, JobStatus } from "../types/job"
+import type { JobItem, JobStatus, Repeat } from "../types/job"
 import { JOB_STATUSES } from "../types/job"
-import { formatMoney, todayISO } from "../utils/date"
-import { clashesWith, durationOf, endTime, formatDuration, itemsLabel } from "../utils/jobs"
+import { formatDate, formatMoney, todayISO } from "../utils/date"
+import { clashesWith, durationOf, endTime, formatDuration, itemsLabel, nextRepeatDate, repeatLabel } from "../utils/jobs"
 import { EmptyState, Flash, PageHeader, STATUS_LABELS, Steps } from "./ui"
 import Icon from "./Icon"
 
-type Errors = Partial<Record<"customer" | "vehicle" | "service" | "when" | "price", string>>
+type Errors = Partial<Record<"customer" | "vehicle" | "service" | "when" | "price" | "repeat", string>>
 
 // A service ticked on the form; price is kept as text while it's being typed.
 type Line = Omit<JobItem, "price"> & { price: string }
@@ -41,6 +41,9 @@ function JobForm() {
     const [time, setTime] = useState(existing?.time ?? "09:00")
     const [status, setStatus] = useState<JobStatus>(existing?.status ?? "booked")
     const [notes, setNotes] = useState(existing?.notes ?? "")
+    const [repeats, setRepeats] = useState(existing?.repeat != null)
+    const [repeatEvery, setRepeatEvery] = useState(String(existing?.repeat?.every ?? 1))
+    const [repeatUnit, setRepeatUnit] = useState<Repeat["unit"]>(existing?.repeat?.unit ?? "month")
     const [errors, setErrors] = useState<Errors>({})
 
     if (isEdit && !existing) {
@@ -89,6 +92,8 @@ function JobForm() {
         if (!vehicle) next.vehicle = "Choose a vehicle."
         if (lines.length === 0) next.service = "Tick at least one service."
         if (!date || !time) next.when = "Choose a date and time."
+        const every = Number(repeatEvery)
+        if (repeats && (!Number.isInteger(every) || every < 1 || every > 52)) next.repeat = "Enter a whole number from 1 to 52."
         if (lines.some((l) => l.price === "" || !Number.isFinite(Number(l.price)) || Number(l.price) < 0)) next.price = "Enter a price for each service, like 120."
         setErrors(next)
         if (Object.keys(next).length > 0 || !customer || !vehicle) return
@@ -102,6 +107,7 @@ function JobForm() {
             price: total,
             status,
             notes: notes.trim(),
+            repeat: repeats ? { every, unit: repeatUnit } : null,
         }
         if (existing) {
             updateJob({ ...existing, ...details })
@@ -235,6 +241,37 @@ function JobForm() {
                         </span>
                     </div>
                 }
+
+                <fieldset className="field">
+                    <legend>Repeat</legend>
+                    <label className="check">
+                        <input type="checkbox" checked={repeats} onChange={(event) => setRepeats(event.target.checked)} />
+                        <span>Book this job again automatically</span>
+                    </label>
+                    {repeats &&
+                        <>
+                            <div className="repeat-row">
+                                <span>Every</span>
+                                <input className="tnum" inputMode="numeric" value={repeatEvery} aria-label="How many"
+                                    aria-invalid={errors.repeat ? true : undefined} onChange={(event) => setRepeatEvery(event.target.value)} />
+                                <select value={repeatUnit} aria-label="Weeks or months" onChange={(event) => setRepeatUnit(event.target.value as Repeat["unit"])}>
+                                    <option value="week">{repeatEvery === "1" ? "week" : "weeks"}</option>
+                                    <option value="month">{repeatEvery === "1" ? "month" : "months"}</option>
+                                </select>
+                            </div>
+                            {errors.repeat ?
+                                <span className="field-error">{errors.repeat}</span> :
+                                existing?.nextJobId != null ?
+                                    <span className="hint">The next job is already booked. To change later bookings, edit that job's repeat.</span> :
+                                    <span className="hint">
+                                        When this job is marked done, the next one is booked for {date && Number(repeatEvery) >= 1
+                                            ? formatDate(nextRepeatDate(date, { every: Number(repeatEvery), unit: repeatUnit }))
+                                            : `${repeatLabel({ every: Number(repeatEvery) || 1, unit: repeatUnit }).toLowerCase()} after it`}.
+                                    </span>
+                            }
+                        </>
+                    }
+                </fieldset>
 
                 {existing &&
                     <label className="field">

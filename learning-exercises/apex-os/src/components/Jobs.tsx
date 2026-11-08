@@ -3,7 +3,8 @@ import { Link, useNavigate, useSearchParams } from "react-router"
 import { useData } from "../data/useData"
 import type { Job, JobStatus } from "../types/job"
 import { formatDate, formatMoney, todayISO } from "../utils/date"
-import { itemsLabel } from "../utils/jobs"
+import { itemsLabel, repeatLabel } from "../utils/jobs"
+import Icon from "./Icon"
 import WeekView from "./WeekView"
 import { EmptyState, Flash, PageHeader, SearchBox, StatusBadge } from "./ui"
 
@@ -134,6 +135,7 @@ function Jobs() {
                                                     {job.date === today ? "Today" : formatDate(job.date)}
                                                 </Link>
                                                 <span className="cell-sub tnum"> · {job.time}</span>
+                                                {job.repeat && <span className="repeat-mark" title={repeatLabel(job.repeat)} aria-label={repeatLabel(job.repeat)}><Icon name="repeat" size={14} /></span>}
                                             </td>
                                             <td data-label="Customer">{customerName(job)}</td>
                                             <td data-label="Vehicle">

@@ -17,6 +17,15 @@ export function addDays(isoDate: string, days: number): string {
     return toISODate(date)
 }
 
+// Adds whole months, keeping the day where possible (31 Jan + 1 month = 28 Feb).
+export function addMonths(isoDate: string, months: number): string {
+    const [year, month, day] = isoDate.split("-").map(Number) as [number, number, number]
+    const target = new Date(year, month - 1 + months, 1)
+    const lastDay = new Date(target.getFullYear(), target.getMonth() + 1, 0).getDate()
+    target.setDate(Math.min(day, lastDay))
+    return toISODate(target)
+}
+
 export function daysSince(isoDate: string): number {
     const then = new Date(`${isoDate}T00:00:00`).getTime()
     const now = new Date(`${todayISO()}T00:00:00`).getTime()

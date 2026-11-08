@@ -3,7 +3,7 @@ import { Link } from "react-router"
 import { useData } from "../data/useData"
 import type { Job } from "../types/job"
 import { addDays, todayISO } from "../utils/date"
-import { clashesWith, endTime, isOpen, itemsLabel } from "../utils/jobs"
+import { clashesWith, endTime, isOpen, itemsLabel, repeatLabel } from "../utils/jobs"
 import Icon from "./Icon"
 import { StatusBadge } from "./ui"
 
@@ -70,7 +70,10 @@ function WeekView() {
                                     const clash = isOpen(job) && clashesWith(job, jobs).length > 0
                                     return (
                                         <Link key={job.id} to={`/jobs/${job.id}`} className={`slot${clash ? " clash" : ""}${isOpen(job) ? "" : " finished"}`}>
-                                            <span className="slot-time tnum">{job.time}–{endTime(job)}</span>
+                                            <span className="slot-time tnum">
+                                                {job.time}–{endTime(job)}
+                                                {job.repeat && <span className="repeat-mark" title={repeatLabel(job.repeat)} aria-label={repeatLabel(job.repeat)}><Icon name="repeat" size={12} /></span>}
+                                            </span>
                                             <strong>{customerName(job)}</strong>
                                             <span className="secondary small"><span className="plate small-plate">{rego(job)}</span> {itemsLabel(job.items)}</span>
                                             {clash ?

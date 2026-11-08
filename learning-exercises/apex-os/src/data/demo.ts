@@ -93,6 +93,8 @@ export function createDemoData() {
                 notes: "",
                 invoiceNumber: null,
                 invoiceDate: "",
+                repeat: null,
+                nextJobId: null,
             })
         }
     }

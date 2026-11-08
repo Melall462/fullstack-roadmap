@@ -24,6 +24,6 @@ export const seedServices: Service[] = [
 const today = todayISO()
 
 export const seedJobs: Job[] = [
-    { id: 1, customerId: 1, vehicleId: 1, items: [{ serviceId: 3, name: "Full Detail", price: 220, durationMins: 240 }], date: today, time: "10:00", price: 220, status: "booked", notes: "", invoiceNumber: null, invoiceDate: "" },
-    { id: 2, customerId: 2, vehicleId: 2, items: [{ serviceId: 2, name: "Interior Detail", price: 120, durationMins: 120 }], date: addDays(today, 2), time: "13:30", price: 120, status: "booked", notes: "Focus on back seat", invoiceNumber: null, invoiceDate: "" },
+    { id: 1, customerId: 1, vehicleId: 1, items: [{ serviceId: 3, name: "Full Detail", price: 220, durationMins: 240 }], date: today, time: "10:00", price: 220, status: "booked", notes: "", invoiceNumber: null, invoiceDate: "", repeat: { every: 1, unit: "month" }, nextJobId: null },
+    { id: 2, customerId: 2, vehicleId: 2, items: [{ serviceId: 2, name: "Interior Detail", price: 120, durationMins: 120 }], date: addDays(today, 2), time: "13:30", price: 120, status: "booked", notes: "Focus on back seat", invoiceNumber: null, invoiceDate: "", repeat: null, nextJobId: null },
 ]

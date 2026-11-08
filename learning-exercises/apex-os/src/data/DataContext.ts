@@ -30,7 +30,7 @@ export type DataContextValue = {
     updateService: (service: Service) => void,
     deleteService: (serviceId: number) => void,
 
-    addJob: (job: Omit<Job, "id" | "invoiceNumber" | "invoiceDate">) => number,
+    addJob: (job: Omit<Job, "id" | "invoiceNumber" | "invoiceDate" | "nextJobId">) => number,
     updateJob: (job: Job) => void,
     deleteJob: (jobId: number) => void,
     setJobStatus: (jobId: number, status: JobStatus) => void,

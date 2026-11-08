@@ -1,4 +1,5 @@
-import type { Job, JobItem } from "../types/job"
+import type { Job, JobItem, Repeat } from "../types/job"
+import { addDays, addMonths, todayISO } from "./date"
 
 export const isFinished = (job: Job) => job.status === "done" || job.status === "paid"
 export const isOpen = (job: Job) => job.status === "booked" || job.status === "in-progress"
@@ -52,4 +53,24 @@ export function reminderText(template: string, values: { name: string, vehicle: 
         .replaceAll("{rego}", values.rego)
         .replaceAll("{months}", months)
         .replaceAll("{business}", values.business)
+}
+
+export function repeatLabel(repeat: Repeat): string {
+    const unit = repeat.unit === "week" ? "week" : "month"
+    return repeat.every === 1 ? `Every ${unit}` : `Every ${repeat.every} ${unit}s`
+}
+
+function step(date: string, repeat: Repeat, times: number): string {
+    return repeat.unit === "week" ? addDays(date, 7 * repeat.every * times) : addMonths(date, repeat.every * times)
+}
+
+// The date of the next booking after a repeating job: one interval after the job's
+// own date, skipping ahead if that's already in the past (e.g. the job was marked
+// done late), so the next booking is never in the past.
+export function nextRepeatDate(date: string, repeat: Repeat): string {
+    const today = todayISO()
+    let times = 1
+    let next = step(date, repeat, times)
+    while (next < today) next = step(date, repeat, ++times)
+    return next
 }

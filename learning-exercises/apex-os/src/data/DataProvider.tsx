@@ -8,7 +8,8 @@ import type { Vehicle } from "../types/vehicle"
 import type { Service } from "../types/service"
 import type { Job, JobItem } from "../types/job"
 import { defaultSettings, type Settings } from "../types/settings"
-import { todayISO } from "../utils/date"
+import { formatDate, todayISO } from "../utils/date"
+import { isFinished, nextRepeatDate } from "../utils/jobs"
 
 // Vehicles saved by older versions of the app had no id, a string customerId
 // and sometimes a numeric year. This brings them up to the current shape.
@@ -61,6 +62,8 @@ function migrateJob(services: Service[]) {
             notes: typeof job.notes === "string" ? job.notes : "",
             invoiceNumber: typeof raw["invoiceNumber"] === "number" ? job.invoiceNumber : null,
             invoiceDate: typeof raw["invoiceDate"] === "string" ? job.invoiceDate : "",
+            repeat: raw["repeat"] && typeof raw["repeat"] === "object" ? job.repeat : null,
+            nextJobId: typeof raw["nextJobId"] === "number" ? job.nextJobId : null,
         }
     }
 }
@@ -128,6 +131,29 @@ function DataProvider({ children }: { children: ReactNode }) {
         setVehicles((previous) => previous.map((v) =>
             v.id === job.vehicleId && job.date > v.lastDetail ? { ...v, lastDetail: job.date } : v
         ))
+    }
+
+    // Saves a changed job. If it's a repeating job that has just been finished,
+    // the next one is booked too (once only, tracked by nextJobId).
+    function saveJob(job: Job) {
+        let saved = job
+        let next: Job | null = null
+        if (job.repeat && isFinished(job) && job.nextJobId === null) {
+            next = {
+                ...job,
+                id: newId(),
+                date: nextRepeatDate(job.date, job.repeat),
+                status: "booked",
+                invoiceNumber: null,
+                invoiceDate: "",
+                nextJobId: null,
+            }
+            saved = { ...job, nextJobId: next.id }
+            // Undo takes back both the status change and the new booking.
+            rememberForUndo(`Next job booked for ${formatDate(next.date)}.`)
+        }
+        setJobs((previous) => [...previous.map((j) => j.id === saved.id ? saved : j), ...(next ? [next] : [])])
+        recordDetail(saved)
     }
 
     // Remember everything before a delete so Undo can put it back.
@@ -205,13 +231,12 @@ function DataProvider({ children }: { children: ReactNode }) {
 
         addJob(job) {
             const id = newId()
-            setJobs((previous) => [...previous, { ...job, id, invoiceNumber: null, invoiceDate: "" }])
+            setJobs((previous) => [...previous, { ...job, id, invoiceNumber: null, invoiceDate: "", nextJobId: null }])
             recordDetail(job)
             return id
         },
         updateJob(job) {
-            setJobs((previous) => previous.map((j) => j.id === job.id ? job : j))
-            recordDetail(job)
+            saveJob(job)
         },
         deleteJob(jobId) {
             rememberForUndo("Job deleted.")
@@ -220,8 +245,7 @@ function DataProvider({ children }: { children: ReactNode }) {
         setJobStatus(jobId, status) {
             const job = jobs.find((j) => j.id === jobId)
             if (!job) return
-            setJobs((previous) => previous.map((j) => j.id === jobId ? { ...j, status } : j))
-            recordDetail({ ...job, status })
+            saveJob({ ...job, status })
         },
         createInvoice(jobId) {
             const job = jobs.find((j) => j.id === jobId)

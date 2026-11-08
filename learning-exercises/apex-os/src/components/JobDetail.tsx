@@ -2,7 +2,7 @@ import { Link, useNavigate, useParams } from "react-router"
 import { useData } from "../data/useData"
 import { JOB_STATUSES } from "../types/job"
 import { formatDate, formatMoney } from "../utils/date"
-import { clashesWith, durationOf, endTime, formatDuration, isFinished, isOpen } from "../utils/jobs"
+import { clashesWith, durationOf, endTime, formatDuration, isFinished, isOpen, repeatLabel } from "../utils/jobs"
 import Icon from "./Icon"
 import { Flash, PageHeader, STATUS_LABELS, StatusBadge } from "./ui"
 
@@ -68,6 +68,14 @@ function JobDetail() {
                         </dd>
                     </div>
                     <div><dt>Status</dt><dd><StatusBadge status={job.status} /></dd></div>
+                    <div>
+                        <dt>Repeats</dt>
+                        <dd>
+                            {job.repeat ? repeatLabel(job.repeat) : <span className="secondary">No</span>}
+                            {job.nextJobId !== null && jobs.some((j) => j.id === job.nextJobId) &&
+                                <div className="small"><Link to={`/jobs/${job.nextJobId}`}>Next job: {formatDate(jobs.find((j) => j.id === job.nextJobId)?.date ?? "")}</Link></div>}
+                        </dd>
+                    </div>
                     <div><dt>Invoice</dt><dd className="tnum">{job.invoiceNumber !== null ? `#${job.invoiceNumber}` : <span className="secondary">Not created</span>}</dd></div>
                 </dl>
 
