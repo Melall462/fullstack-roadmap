@@ -1,23 +1,35 @@
 import { useState } from "react"
 import { Link, useNavigate, useSearchParams } from "react-router"
 import { useData } from "../data/useData"
-import type { Job } from "../types/job"
+import type { Job, JobStatus } from "../types/job"
 import { formatDate, formatMoney, todayISO } from "../utils/date"
-import { isOpen, itemsLabel } from "../utils/jobs"
+import { itemsLabel } from "../utils/jobs"
 import WeekView from "./WeekView"
 import { EmptyState, Flash, PageHeader, SearchBox, StatusBadge } from "./ui"
 
-type View = "open" | "finished" | "all"
+type View = "open" | "unpaid" | "all"
 
 const VIEWS: { id: View, label: string }[] = [
     { id: "open", label: "Open" },
-    { id: "finished", label: "Finished" },
+    { id: "unpaid", label: "Unpaid" },
     { id: "all", label: "All" },
 ]
 
+// Open: still to do (booked or in progress). Unpaid: work done, waiting on payment.
+// Paid jobs only show under All.
+const isOpen = (job: Job) => job.status === "booked" || job.status === "in-progress"
+const isUnpaid = (job: Job) => job.status === "done"
+
+// For each status, what comes next and what the quick button says.
+// Paid has no entry because nothing comes after it, so paid jobs get no button.
+const NEXT_STEP: Partial<Record<JobStatus, { status: JobStatus, label: string }>> = {
+    "booked": { status: "in-progress", label: "Mark in progress" },
+    "in-progress": { status: "done", label: "Mark done" },
+    "done": { status: "paid", label: "Mark paid" },
+}
 
 function Jobs() {
-    const { jobs, customers, vehicles, loadDemoData } = useData()
+    const { jobs, customers, vehicles, loadDemoData, setJobStatus } = useData()
     const navigate = useNavigate()
     const [searchParams, setSearchParams] = useSearchParams()
     const layout = searchParams.get("view") === "week" ? "week" : "list"
@@ -32,7 +44,7 @@ function Jobs() {
     const serviceName = (job: Job) => itemsLabel(job.items)
 
     const visibleJobs = jobs
-        .filter((job) => view === "all" || (view === "open" ? isOpen(job) : !isOpen(job)))
+        .filter((job) => view === "all" || (view === "open" ? isOpen(job) : isUnpaid(job)))
         .filter((job) => {
             if (!term) return true
             const vehicle = vehicleFor(job)
@@ -41,11 +53,13 @@ function Jobs() {
         })
         .sort((a, b) => {
             const order = `${a.date} ${a.time}`.localeCompare(`${b.date} ${b.time}`)
-            return view === "open" ? order : -order
+            // Open and Unpaid show the oldest first (next up, or waiting longest). All shows newest first.
+            return view === "all" ? -order : order
         })
 
     const todayCount = jobs.filter((j) => j.date === today && isOpen(j)).length
     const openCount = jobs.filter(isOpen).length
+    const unpaidCount = jobs.filter(isUnpaid).length
 
     if (customers.length === 0) {
         return (
@@ -69,7 +83,7 @@ function Jobs() {
             <Flash />
             <PageHeader
                 title="Jobs"
-                subtitle={`${todayCount} today · ${openCount} open`}
+                subtitle={`${todayCount} today · ${openCount} open · ${unpaidCount} unpaid`}
             >
                 {layout === "list" && <SearchBox value={search} onChange={setSearch} placeholder="Search customer, rego or service" />}
                 <div className="switch" role="group" aria-label="Show as">
@@ -94,7 +108,7 @@ function Jobs() {
 
                 <div className="card">
                     {visibleJobs.length === 0 ?
-                        <EmptyState title={term ? "No jobs match that search" : view === "open" ? "No open jobs" : "No jobs here yet"}>
+                        <EmptyState title={term ? "No jobs match that search" : view === "open" ? "No open jobs" : view === "unpaid" ? "Nothing waiting on payment" : "No jobs here yet"}>
                             {term ? "Try a name, rego or service." : <span>Use <Link to="/jobs/new">New job</Link> to book one.</span>}
                         </EmptyState> :
                         <table className="table">
@@ -106,11 +120,13 @@ function Jobs() {
                                     <th>Services</th>
                                     <th>Status</th>
                                     <th className="num">Total</th>
+                                    <th>Next step</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {visibleJobs.map((job) => {
                                     const vehicle = vehicleFor(job)
+                                    const next = NEXT_STEP[job.status]
                                     return (
                                         <tr key={job.id} className="clickable" onClick={() => navigate(`/jobs/${job.id}`)}>
                                             <td className="lead">
@@ -126,6 +142,14 @@ function Jobs() {
                                             <td data-label="Services">{serviceName(job)}</td>
                                             <td data-label="Status"><StatusBadge status={job.status} /></td>
                                             <td data-label="Total" className="num">{formatMoney(job.price)}</td>
+                                            <td data-label="Next step">
+                                                {next &&
+                                                    <button className="btn" onClick={(event) => {
+                                                        event.stopPropagation()
+                                                        setJobStatus(job.id, next.status)
+                                                    }}>{next.label}</button>
+                                                }
+                                            </td>
                                         </tr>
                                     )
                                 })}
