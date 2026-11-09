@@ -124,11 +124,12 @@ function Analytics() {
 
     const ownerName = (customerId: number | null) => customers.find((c) => c.id === customerId)?.name
 
-    // A link that opens an email (or a text, if there's no email) with the reminder written for you.
-    function reminderLink(vehicleId: number): string | null {
+    // Links that open a text and/or an email with the reminder written for you.
+    // A customer with both a phone number and an email gets both, so you can choose.
+    function reminderLinks(vehicleId: number): { text?: string, email?: string } {
         const vehicle = vehicles.find((v) => v.id === vehicleId)
         const owner = customers.find((c) => c.id === vehicle?.customerId)
-        if (!vehicle || !owner || (!owner.email && !owner.phone)) return null
+        if (!vehicle || !owner) return {}
         const body = reminderText(settings.reminderMessage, {
             name: owner.name,
             vehicle: `${vehicle.make} ${vehicle.model}`,
@@ -136,11 +137,11 @@ function Analytics() {
             daysSince: vehicle.lastDetail ? daysSince(vehicle.lastDetail) : null,
             business: settings.businessName,
         })
-        if (owner.email) {
-            const subject = `Time for a detail on your ${vehicle.make} ${vehicle.model}?`
-            return `mailto:${owner.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
+        const subject = `Time for a detail on your ${vehicle.make} ${vehicle.model}?`
+        return {
+            ...(owner.phone ? { text: `sms:${owner.phone.replace(/\s/g, "")}?body=${encodeURIComponent(body)}` } : {}),
+            ...(owner.email ? { email: `mailto:${owner.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}` } : {}),
         }
-        return `sms:${owner.phone.replace(/\s/g, "")}?body=${encodeURIComponent(body)}`
     }
 
     return (
@@ -200,7 +201,7 @@ function Analytics() {
             <section className="section">
                 <div>
                     <h2>Vehicles due for a detail</h2>
-                    <p className="secondary small">Not detailed in the last {DUE_AFTER_DAYS} days. "Send reminder" opens an email or text with your message from Settings.</p>
+                    <p className="secondary small">Not detailed in the last {DUE_AFTER_DAYS} days. "Text" and "Email" open a reminder with your message from Settings, ready to send.</p>
                 </div>
                 <div className="card">
                     {due.length === 0 ?
@@ -208,7 +209,9 @@ function Analytics() {
                         <table className="table">
                             <thead><tr><th>Rego</th><th>Vehicle</th><th>Owner</th><th>Last detail</th><th className="num">Days since</th><th></th></tr></thead>
                             <tbody>
-                                {due.map(({ vehicle, age }) => (
+                                {due.map(({ vehicle, age }) => {
+                                    const links = reminderLinks(vehicle.id)
+                                    return (
                                     <tr key={vehicle.id} className="clickable" onClick={() => navigate(`/vehicles/${vehicle.id}`)}>
                                         <td className="lead"><Link to={`/vehicles/${vehicle.id}`} onClick={(e) => e.stopPropagation()}><span className="plate">{vehicle.rego}</span></Link></td>
                                         <td data-label="Vehicle">{vehicle.make} {vehicle.model}</td>
@@ -216,11 +219,13 @@ function Analytics() {
                                         <td data-label="Last detail" className="cell-sub tnum">{vehicle.lastDetail ? formatDate(vehicle.lastDetail) : "Never"}</td>
                                         <td data-label="Days since" className="num">{age ?? "Never"}</td>
                                         <td className="num row-links" onClick={(e) => e.stopPropagation()}>
-                                            {reminderLink(vehicle.id) && <a className="small" href={reminderLink(vehicle.id) ?? undefined}>Send reminder</a>}
+                                            {links.text && <a className="small" href={links.text}>Text</a>}
+                                            {links.email && <a className="small" href={links.email}>Email</a>}
                                             {vehicle.customerId !== null && <Link className="small" to={`/jobs/new?vehicle=${vehicle.id}`}>Book job</Link>}
                                         </td>
                                     </tr>
-                                ))}
+                                )
+                                })}
                             </tbody>
                         </table>
                     }
